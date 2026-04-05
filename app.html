@@ -1211,6 +1211,21 @@
                         <canvas id="weightDetailChart"></canvas>
                     </div>
                 </div>
+
+                <div class="card" id="bodyCard" style="display: none;">
+                    <div class="card-header">
+                        <h2>График объёмов</h2>
+                        <div class="chart-tabs">
+                            <button class="chart-tab active" data-period="7" data-chart="body">7 дней</button>
+                            <button class="chart-tab" data-period="14" data-chart="body">14 дней</button>
+                            <button class="chart-tab" data-period="30" data-chart="body">Месяц</button>
+                            <button class="chart-tab" data-period="all" data-chart="body">Все</button>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="bodyChart"></canvas>
+                    </div>
+                </div>
             </section>
 
             <!-- Секция Вода -->
@@ -1258,17 +1273,26 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="weightValue">Вес</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="number" id="weightKg" class="form-control" placeholder="Кг" step="1" min="0" required style="flex: 1;">
-                        <input type="number" id="weightG" class="form-control" placeholder="Гр" step="1" min="0" max="999">
+                    <label for="weightKg">Вес (кг)</label>
+                    <input type="number" id="weightKg" class="form-control" placeholder="Например: 65.5" step="0.1" min="20" max="300" required>
+                </div>
+                <div class="form-group">
+                    <label>Объёмы тела (см)</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="number" id="chest" class="form-control" placeholder="Грудь" step="0.1" min="0">
+                        <input type="number" id="waist" class="form-control" placeholder="Талия" step="0.1" min="0">
+                        <input type="number" id="hips" class="form-control" placeholder="Бёдра" step="0.1" min="0">
+                        <input type="number" id="leftArm" class="form-control" placeholder="Лев. рука" step="0.1" min="0">
+                        <input type="number" id="rightArm" class="form-control" placeholder="Прав. рука" step="0.1" min="0">
+                        <input type="number" id="leftThigh" class="form-control" placeholder="Лев. бедро" step="0.1" min="0">
+                        <input type="number" id="rightThigh" class="form-control" placeholder="Прав. бедро" step="0.1" min="0">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="weightNote">Заметка</label>
                     <textarea id="weightNote" class="form-control" placeholder="Дополнительные заметки..." rows="3"></textarea>
                 </div>
-                <button type="submit" class="btn-save">Сохранить вес</button>
+                <button type="submit" class="btn-save">Сохранить</button>
             </form>
         </div>
     </div>
@@ -1329,11 +1353,11 @@
                 });
         }
 
-        // Загрузка данных веса из measurements
+        // Загрузка данных веса и объёмов из measurements
         function loadWeightData() {
             supabase
                 .from('measurements')
-                .select('measurement_date, weight')
+                .select('measurement_date, weight, chest, waist, hips, left_arm, right_arm, left_thigh, right_thigh')
                 .eq('user_id', currentUser.id)
                 .order('measurement_date', { ascending: true })
                 .then(function(result) {
@@ -1342,11 +1366,31 @@
                         return;
                     }
                     weightData = (result.data || []).map(function(row) {
-                        return { date: row.measurement_date, weight: parseFloat(row.weight) };
+                        return { 
+                            date: row.measurement_date, 
+                            weight: parseFloat(row.weight),
+                            chest: row.chest ? parseFloat(row.chest) : null,
+                            waist: row.waist ? parseFloat(row.waist) : null,
+                            hips: row.hips ? parseFloat(row.hips) : null,
+                            left_arm: row.left_arm ? parseFloat(row.left_arm) : null,
+                            right_arm: row.right_arm ? parseFloat(row.right_arm) : null,
+                            left_thigh: row.left_thigh ? parseFloat(row.left_thigh) : null,
+                            right_thigh: row.right_thigh ? parseFloat(row.right_thigh) : null
+                        };
                     });
                     console.log('Загружено записей веса:', weightData.length);
                     updateWeightChart(7);
                     updateWeightDetailChart(7);
+                    
+                    // Если есть данные объёмов — покажем карточку и обновим график
+                    var hasBodyData = weightData.some(function(d) { return d.chest || d.waist || d.hips; });
+                    if (hasBodyData) {
+                        document.getElementById('bodyCard').style.display = 'block';
+                        initBodyChart();
+                        updateBodyChart(7);
+                    } else {
+                        document.getElementById('bodyCard').style.display = 'none';
+                    }
                 })
                 .catch(function(err) {
                     console.error('Ошибка загрузки веса:', err);
@@ -1479,7 +1523,18 @@
                     const parent = this.closest('.card-header') || this.closest('.chart-tabs');
                     parent.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
-                    updateWeightChart(parseInt(this.dataset.period) || 'all');
+                    
+                    var chartType = this.dataset.chart || 'weight';
+                    var period = parseInt(this.dataset.period) || 7;
+                    
+                    if (chartType === 'weight' || chartType === 'weightDetail') {
+                        updateWeightChart(period);
+                        updateWeightDetailChart(period);
+                    } else if (chartType === 'body') {
+                        updateBodyChart(period);
+                    } else {
+                        updateWeightChart(period);
+                    }
                 });
             });
 
@@ -1816,6 +1871,49 @@
             waterDetailChart.update();
         }
 
+        // График объёмов тела
+        let bodyChart;
+
+        function initBodyChart() {
+            var ctx = document.getElementById('bodyChart').getContext('2d');
+            bodyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Грудь', data: [], borderColor: '#e53e3e', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
+                        { label: 'Талия', data: [], borderColor: '#38a169', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
+                        { label: 'Бёдра', data: [], borderColor: '#3182ce', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+
+        function updateBodyChart(period) {
+            if (!bodyChart) initBodyChart();
+            
+            var filtered = weightData;
+            if (period !== 'all') {
+                var cutoff = new Date();
+                cutoff.setDate(cutoff.getDate() - period);
+                filtered = weightData.filter(function(d) { return new Date(d.date) >= cutoff; });
+            }
+
+            bodyChart.data.labels = filtered.map(function(d) {
+                return new Date(d.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            });
+            bodyChart.data.datasets[0].data = filtered.map(function(d) { return d.chest; });
+            bodyChart.data.datasets[1].data = filtered.map(function(d) { return d.waist; });
+            bodyChart.data.datasets[2].data = filtered.map(function(d) { return d.hips; });
+            bodyChart.update();
+        }
+
         // Сохранение приема пищи в Supabase (reports)
         function saveMeal() {
             var reportData = {
@@ -1851,21 +1949,31 @@
                 });
         }
 
-        // Сохранение веса в Supabase (measurements)
+        // Сохранение веса и объёмов в Supabase (measurements)
         function saveWeight() {
-            var kg = parseInt(document.getElementById('weightKg').value) || 0;
-            var g = parseInt(document.getElementById('weightG').value) || 0;
-            var weight = kg + g / 1000;
+            var weight = parseFloat(document.getElementById('weightKg').value);
+            
+            if (!weight || weight < 20 || weight > 300) {
+                showToast('Введите корректный вес (20-300 кг)');
+                return;
+            }
 
             var measurementData = {
                 user_id: currentUser.id,
                 measurement_date: document.getElementById('weightDate').value,
                 measurement_time: document.getElementById('weightTime').value,
-                weight: parseFloat(weight.toFixed(2)),
+                weight: weight,
+                chest: document.getElementById('chest').value ? parseFloat(document.getElementById('chest').value) : null,
+                waist: document.getElementById('waist').value ? parseFloat(document.getElementById('waist').value) : null,
+                hips: document.getElementById('hips').value ? parseFloat(document.getElementById('hips').value) : null,
+                left_arm: document.getElementById('leftArm').value ? parseFloat(document.getElementById('leftArm').value) : null,
+                right_arm: document.getElementById('rightArm').value ? parseFloat(document.getElementById('rightArm').value) : null,
+                left_thigh: document.getElementById('leftThigh').value ? parseFloat(document.getElementById('leftThigh').value) : null,
+                right_thigh: document.getElementById('rightThigh').value ? parseFloat(document.getElementById('rightThigh').value) : null,
                 notes: document.getElementById('weightNote') ? document.getElementById('weightNote').value : null
             };
 
-            console.log('Сохраняю вес:', measurementData);
+            console.log('Сохраняю замеры:', measurementData);
 
             supabase
                 .from('measurements')
@@ -1876,16 +1984,16 @@
                         showToast('Ошибка: ' + result.error.message);
                         return;
                     }
-                    console.log('Вес сохранён!');
-                    showToast('✓ Вес сохранен!');
+                    console.log('Замеры сохранены!');
+                    showToast('✓ Данные сохранены!');
                     closeResultModal();
                     document.getElementById('weightForm').reset();
                     setDefaultDates();
-                    // Перезагружаем данные веса
+                    // Перезагружаем данные
                     loadWeightData();
                 })
                 .catch(function(err) {
-                    console.error('Ошибка сохранения веса:', err);
+                    console.error('Ошибка сохранения замеров:', err);
                     showToast('Ошибка сохранения: ' + err.message);
                 });
         }
