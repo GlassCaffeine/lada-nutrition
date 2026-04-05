@@ -12,20 +12,6 @@
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     var currentUser = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        supabase.auth.getSession().then(function(result) {
-            if (result.data && result.data.session) {
-                currentUser = result.data.session.user;
-                console.log('Пользователь авторизован:', currentUser.email);
-            } else {
-                console.log('Нет сессии, редирект на вход');
-                window.location.href = 'GS_Login.html';
-            }
-        }).catch(function(err) {
-            console.error('Ошибка проверки сессии:', err);
-        });
-    });
-
     function handleLogout() {
         supabase.auth.signOut().then(function() {
             window.location.href = 'GS_Login.html';
@@ -1670,15 +1656,27 @@
             setDefaultDates();
             initCharts();
             setupEventListeners();
-            
-            // Загружаем данные из Supabase
-            if (currentUser) {
-                loadUserProfile();
-                loadWeightData();
-                loadWaterData();
-                loadRecommendations();
-                loadChatMessages();
-            }
+
+            // Проверяем авторизацию и загружаем данные
+            supabase.auth.getSession().then(function(result) {
+                if (result.data && result.data.session) {
+                    currentUser = result.data.session.user;
+                    console.log('Пользователь авторизован:', currentUser.email);
+                    
+                    // Загружаем данные из Supabase
+                    loadUserProfile();
+                    loadWeightData();
+                    loadWaterData();
+                    loadRecommendations();
+                    loadChatMessages();
+                } else {
+                    console.log('Нет сессии, редирект на вход');
+                    window.location.href = 'GS_Login.html';
+                }
+            }).catch(function(err) {
+                console.error('Ошибка проверки сессии:', err);
+                window.location.href = 'GS_Login.html';
+            });
         });
 
         // Установка текущей даты
@@ -1992,11 +1990,13 @@
 
         // Обновление графика веса
         function updateWeightChart(period) {
-            let filteredData = weightData;
+            // Фильтруем только записи с весом
+            let filteredData = weightData.filter(function(d) { return d.weight !== null; });
+            
             if (period !== 'all') {
                 const cutoffDate = new Date();
                 cutoffDate.setDate(cutoffDate.getDate() - period);
-                filteredData = weightData.filter(d => new Date(d.date) >= cutoffDate);
+                filteredData = filteredData.filter(d => new Date(d.date) >= cutoffDate);
             }
 
             const labels = filteredData.map(d => {
@@ -2007,7 +2007,7 @@
 
             // Расчет тренда (линейная регрессия)
             const trendValues = calculateTrend(values);
-            const trendDirection = trendValues[trendValues.length - 1] - trendValues[0];
+            const trendDirection = trendValues.length > 1 ? trendValues[trendValues.length - 1] - trendValues[0] : 0;
 
             weightChart.data.labels = labels;
             weightChart.data.datasets[0].data = values;
@@ -2083,11 +2083,13 @@
 
         // Обновление детального графика веса
         function updateWeightDetailChart(period) {
-            let filteredData = weightData;
+            // Фильтруем только записи с весом
+            let filteredData = weightData.filter(function(d) { return d.weight !== null; });
+            
             if (period !== 'all') {
                 const cutoffDate = new Date();
                 cutoffDate.setDate(cutoffDate.getDate() - period);
-                filteredData = weightData.filter(d => new Date(d.date) >= cutoffDate);
+                filteredData = filteredData.filter(d => new Date(d.date) >= cutoffDate);
             }
 
             const labels = filteredData.map(d => {
@@ -2111,9 +2113,11 @@
             });
             const values = waterData.map(d => d.amount);
 
-            waterDetailChart.data.labels = labels;
-            waterDetailChart.data.datasets[0].data = values;
-            waterDetailChart.update();
+            if (waterDetailChart) {
+                waterDetailChart.data.labels = labels;
+                waterDetailChart.data.datasets[0].data = values;
+                waterDetailChart.update();
+            }
         }
 
         // График объёмов на отдельной странице
@@ -2424,7 +2428,6 @@
                     document.getElementById('weightForm').reset();
                     setDefaultDates();
                     loadWeightData();
-                    renderWeightRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка сохранения веса:', err);
@@ -2433,7 +2436,6 @@
         }
 
         // Сохранение ОБЪЁМОВ в Supabase (measurements - только объёмы)
-        function saveBody() {
             var bodyData = {
                 user_id: currentUser.id,
                 measurement_date: document.getElementById('bodyDate').value,
@@ -2472,7 +2474,6 @@
                     document.getElementById('bodyForm').reset();
                     setDefaultDates();
                     loadWeightData();
-                    renderBodyRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка сохранения объёмов:', err);
@@ -2515,7 +2516,6 @@
                     document.getElementById('waterForm').reset();
                     setDefaultDates();
                     loadWaterData();
-                    renderWaterRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка сохранения воды:', err);
