@@ -99,15 +99,30 @@
 - **Файлы:** index.html, app.html, css/style.css, css/app.css, js/main.js, js/app/*.js, pwa/manifest.json, pwa/sw.js, supabase-schema.sql, PLAN.md, HISTORY.md, README.md, .gitignore
 - **Статус:** ✅ Опубликовано на GitHub
 
+#### Копирование готовых файлов из D:\Glass\Desktop\docs\project\
+- **Время:** продолжение
+- **Действие:** Скопированы 3 основных файла:
+  - `site.html` → `index.html` (лендинг с боковой панелью, neumorphic дизайн)
+  - `GS_Login.html` → `GS_Login.html` (авторизация, подключена к Supabase)
+  - `app.html` → `app.html` (PWA-приложение, добавлена проверка сессии Supabase)
+- **Изменения в GS_Login.html:**
+  - Заменён localStorage на Supabase Auth (вход, регистрация, восстановление пароля)
+  - Добавлена форма восстановления пароля
+  - После входа redirect на app.html
+- **Изменения в app.html:**
+  - Добавлен Supabase SDK и проверка сессии при загрузке
+  - Если не авторизован → redirect на GS_Login.html
+  - Кнопка выхода вызывает handleLogout() → Supabase signOut → redirect на GS_Login.html
+  - Загрузка профиля из таблицы profiles
+- **Статус:** ✅ Готово, ожидает коммита
+
 ---
 
 ## Следующие шаги
-- Создать куратора в Supabase (Authentication → Add user)
-- Создать страницы: privacy-policy.html, terms.html
-- Интеграция оплаты Продамус
-- Создание иконок для PWA (192x192, 512x512)
+- Коммит и публикация изменений
+- Тестирование: регистрация → вход → приложение → выход
+- Интеграция Продамус для оплаты
 - Настройка домена dash.infinityfree.com
-- Финальное тестирование
 
 ---
 
