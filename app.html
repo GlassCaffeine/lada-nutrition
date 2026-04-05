@@ -981,11 +981,15 @@
                 font-size: 18px;
             }
 
-            .btn-login,
-            .btn-save {
-                font-size: 14px;
-                padding: 12px;
+            .cards-grid {
+                grid-template-columns: 1fr !important;
             }
+
+            /* Секция объёмов на мобильных */
+            #body .chart-container {
+                height: 300px !important;
+            }
+        }
 
             .form-control {
                 padding: 10px 12px;
@@ -1035,6 +1039,12 @@
                     <a href="#" class="nav-link" data-section="weight">
                         <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
                         <span>Вес</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="body">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        <span>Объёмы</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -1242,6 +1252,36 @@
                     </div>
                     <div class="chart-container" style="height: 350px;">
                         <canvas id="bodyChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция Объёмы -->
+            <section id="body" class="section">
+                <div class="header">
+                    <div>
+                        <h1>Объёмы тела</h1>
+                        <p>Динамика изменений</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-result" onclick="showBodyModal()">
+                            + Добавить объёмы
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>График объёмов</h2>
+                        <div class="chart-tabs">
+                            <button class="chart-tab active" data-period="7" data-chart="bodySection">7 дней</button>
+                            <button class="chart-tab" data-period="14" data-chart="bodySection">14 дней</button>
+                            <button class="chart-tab" data-period="30" data-chart="bodySection">Месяц</button>
+                            <button class="chart-tab" data-period="all" data-chart="bodySection">Все</button>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="bodySectionChart"></canvas>
                     </div>
                 </div>
             </section>
@@ -1458,12 +1498,11 @@
                     
                     console.log('Загружено записей веса:', weightData.length);
                     
-                    // Обновляем графики веса
+                    // Обновляем графики
                     updateWeightChart(7);
                     updateWeightDetailChart(7);
-                    
-                    // Обновляем график объёмов на главном экране
                     updateBodyChartDash();
+                    updateBodySectionChart(7);
                 })
                 .catch(function(err) {
                     console.error('Ошибка загрузки веса:', err);
@@ -1621,8 +1660,8 @@
                     if (chartType === 'weight' || chartType === 'weightDetail') {
                         updateWeightChart(period);
                         updateWeightDetailChart(period);
-                    } else if (chartType === 'body') {
-                        updateBodyChart(period);
+                    } else if (chartType === 'bodySection') {
+                        updateBodySectionChart(period);
                     } else {
                         updateWeightChart(period);
                     }
@@ -1669,7 +1708,7 @@
         }
 
         // Инициализация графиков
-        let weightChart, waterChart, weightDetailChart, waterDetailChart, bodyChartDash, waterTodayChart;
+        let weightChart, waterTodayChart, bodyChartDash, bodySectionChart;
 
         function initCharts() {
             // График веса на дашборде
@@ -1757,6 +1796,33 @@
                     scales: {
                         y: { beginAtZero: true, grid: { color: 'rgba(163, 175, 194, 0.3)' }, ticks: { color: '#718096' } },
                         x: { grid: { display: false }, ticks: { color: '#718096', maxTicksLimit: 8 } }
+                    }
+                }
+            });
+
+            // График объёмов на отдельной странице
+            const bodySectionCtx = document.getElementById('bodySectionChart').getContext('2d');
+            bodySectionChart = new Chart(bodySectionCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Грудь', data: [], borderColor: '#e53e3e', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 4 },
+                        { label: 'Талия', data: [], borderColor: '#38a169', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 4 },
+                        { label: 'Бёдра', data: [], borderColor: '#3182ce', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 4 },
+                        { label: 'Лев. рука', data: [], borderColor: '#f59e0b', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3, hidden: true },
+                        { label: 'Прав. рука', data: [], borderColor: '#8b5cf6', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3, hidden: true },
+                        { label: 'Лев. бедро', data: [], borderColor: '#ec4899', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3, hidden: true },
+                        { label: 'Прав. бедро', data: [], borderColor: '#06b6d4', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3, hidden: true }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: 'rgba(163, 175, 194, 0.3)' }, ticks: { color: '#718096' } },
+                        x: { grid: { display: false }, ticks: { color: '#718096', maxTicksLimit: 10 } }
                     }
                 }
             });
@@ -1981,13 +2047,44 @@
             waterDetailChart.update();
         }
 
-        // График объёмов на главном экране
+        // График объёмов на отдельной странице
+        function updateBodySectionChart(period) {
+            if (!bodySectionChart) return;
+            
+            var filtered = weightData.filter(function(d) { return d.chest || d.waist || d.hips; });
+            
+            if (period !== 'all' && filtered.length > 0) {
+                var cutoff = new Date();
+                cutoff.setDate(cutoff.getDate() - period);
+                filtered = filtered.filter(function(d) { return new Date(d.date) >= cutoff; });
+            }
+            
+            if (filtered.length === 0) {
+                bodySectionChart.data.labels = ['Нет данных'];
+                bodySectionChart.data.datasets.forEach(function(ds) { ds.data = [null]; });
+                bodySectionChart.update();
+                return;
+            }
+
+            bodySectionChart.data.labels = filtered.map(function(d) {
+                return new Date(d.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            });
+            bodySectionChart.data.datasets[0].data = filtered.map(function(d) { return d.chest; });
+            bodySectionChart.data.datasets[1].data = filtered.map(function(d) { return d.waist; });
+            bodySectionChart.data.datasets[2].data = filtered.map(function(d) { return d.hips; });
+            bodySectionChart.data.datasets[3].data = filtered.map(function(d) { return d.left_arm; });
+            bodySectionChart.data.datasets[4].data = filtered.map(function(d) { return d.right_arm; });
+            bodySectionChart.data.datasets[5].data = filtered.map(function(d) { return d.left_thigh; });
+            bodySectionChart.data.datasets[6].data = filtered.map(function(d) { return d.right_thigh; });
+            bodySectionChart.update();
+        }
+
+        // График объёмов на главном экране (компактный - только грудь, талия, бёдра)
         function updateBodyChartDash() {
             if (!bodyChartDash) return;
             
             var filtered = weightData.filter(function(d) { return d.chest || d.waist || d.hips; });
             
-            // Если нет данных объёмов — показываем пустой график
             if (filtered.length === 0) {
                 bodyChartDash.data.labels = ['Нет данных'];
                 bodyChartDash.data.datasets[0].data = [null];
@@ -1997,7 +2094,6 @@
                 return;
             }
             
-            // Берём последние 7 записей с объёмами
             filtered = filtered.slice(-7);
 
             bodyChartDash.data.labels = filtered.map(function(d) {
