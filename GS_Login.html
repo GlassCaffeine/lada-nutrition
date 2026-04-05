@@ -327,14 +327,31 @@
     var email = document.getElementById('loginEmail').value;
     var password = document.getElementById('loginPassword').value;
 
+    console.log('=== ПОПЫТКА ВХОДА ===');
+    console.log('Email:', email);
+    console.log('Supabase клиент:', supabase ? 'OK' : 'НЕ ИНИЦИАЛИЗИРОВАН');
+
     supabase.auth.signInWithPassword({ email: email, password: password })
       .then(function(result) {
-        if (result.error) throw result.error;
-        // Переход в приложение
+        console.log('Ответ Supabase:', JSON.stringify(result, null, 2));
+        
+        // Supabase JS v2: result = { data: { user, session }, error }
+        if (result.error) {
+          console.error('Ошибка Supabase:', result.error);
+          throw result.error;
+        }
+        
+        console.log('Вход успешен! User:', result.data ? result.data.user : 'нет данных');
         window.location.href = 'app.html';
       })
       .catch(function(err) {
-        showError(err.message === 'Invalid login credentials' ? 'Неверный email или пароль' : err.message);
+        console.error('Catch ошибки входа:', err);
+        var msg = err.message || err.error_description || err.toString();
+        if (msg.includes('Invalid login credentials') || msg.includes('Invalid email or password')) {
+          showError('Неверный email или пароль');
+        } else {
+          showError(msg);
+        }
         setLoading('loginBtn', false);
       });
   });
@@ -343,6 +360,8 @@
   document.getElementById('registerForm').addEventListener('submit', function(e) {
     e.preventDefault();
     hideMessages();
+
+    console.log('=== ПОПЫТКА РЕГИСТРАЦИИ ===');
 
     if (!document.getElementById('consentPD').checked) {
       showError('Необходимо дать согласие на обработку персональных данных');
@@ -360,6 +379,9 @@
     var phone = document.getElementById('regPhone').value;
     var password = document.getElementById('regPassword').value;
 
+    console.log('Данные:', { name, email, phone });
+    console.log('Supabase клиент:', supabase ? 'OK' : 'НЕ ИНИЦИАЛИЗИРОВАН');
+
     supabase.auth.signUp({
       email: email,
       password: password,
@@ -372,12 +394,20 @@
         }
       }
     }).then(function(result) {
-      if (result.error) throw result.error;
+      console.log('Ответ Supabase (регистрация):', JSON.stringify(result, null, 2));
+      
+      if (result.error) {
+        console.error('Ошибка Supabase:', result.error);
+        throw result.error;
+      }
+      
+      console.log('Регистрация успешна! User:', result.data ? result.data.user : 'нет данных');
       showSuccess('Регистрация успешна! Проверьте email для подтверждения.');
       setTimeout(function() { switchTab('login'); }, 2000);
       setLoading('registerBtn', false);
     }).catch(function(err) {
-      showError(err.message);
+      console.error('Catch ошибки регистрации:', err);
+      showError(err.message || err.error_description || err.toString());
       setLoading('registerBtn', false);
     });
   });
