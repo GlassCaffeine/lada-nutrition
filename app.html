@@ -12,117 +12,181 @@
 </head>
 <body class="app-body">
 
-    <!-- Экран авторизации -->
+    <!-- ============ ЭКРАН АВТОРИЗАЦИИ ============ -->
     <div id="auth-screen" class="auth-screen">
-        <div class="auth-container">
-            <div class="auth-logo">
-                <span class="logo-icon">🥗</span>
-                <span class="logo-text">Атакова Лада</span>
+        <div class="login-container">
+            <div class="login-header">
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <h1>Атакова Лада</h1>
+                <p>Раздельное питание</p>
             </div>
 
-            <!-- Табы вход / регистрация -->
             <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="login" onclick="document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));document.querySelector('[data-tab=login]').classList.add('active');document.getElementById('login-form').classList.add('active');">Вход</button>
-                <button class="auth-tab" data-tab="register" onclick="document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));document.querySelector('[data-tab=register]').classList.add('active');document.getElementById('register-form').classList.add('active');">Регистрация</button>
+                <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Вход</button>
+                <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Регистрация</button>
             </div>
+
+            <div id="auth-error" class="error-msg"></div>
+            <div id="auth-success" class="success-msg"></div>
 
             <!-- Форма входа -->
             <form id="login-form" class="auth-form active">
-                <input type="email" id="login-email" placeholder="Email" required>
-                <input type="password" id="login-password" placeholder="Пароль" required>
-                <button type="submit" class="btn btn-primary btn-block">Войти</button>
-                <a href="#" id="forgot-password-link" class="forgot-link">Забыли пароль?</a>
-                <div id="login-error" class="error-message"></div>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <div class="input-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        <input type="email" id="login-email" placeholder="your@email.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Пароль</label>
+                    <div class="input-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">Войти</button>
+                <div class="form-footer">
+                    <a href="#" onclick="showResetForm(); return false;">Забыли пароль?</a>
+                </div>
             </form>
 
             <!-- Форма регистрации -->
             <form id="register-form" class="auth-form">
-                <input type="text" id="register-name" placeholder="ФИО" required>
-                <input type="email" id="register-email" placeholder="Email" required>
-                <input type="tel" id="register-phone" placeholder="Телефон">
-                <input type="password" id="register-password" placeholder="Пароль (мин. 8 символов)" required minlength="8">
-                <input type="password" id="register-password-confirm" placeholder="Подтвердите пароль" required>
+                <div class="form-group">
+                    <label for="reg-name">Имя</label>
+                    <div class="input-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <input type="text" id="reg-name" placeholder="Ваше имя" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email</label>
+                    <div class="input-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        <input type="email" id="reg-email" placeholder="your@email.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-phone">Телефон</label>
+                    <div class="input-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        <input type="tel" id="reg-phone" placeholder="+7 (___) ___-__-__">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Пароль</label>
+                    <div class="input-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                        <input type="password" id="reg-password" placeholder="Минимум 8 символов" minlength="8" required>
+                    </div>
+                </div>
 
-                <div class="consent-block">
-                    <label class="consent-label">
-                        <input type="checkbox" id="consent-personal" required>
-                        <span>Даю согласие на <a href="/privacy-policy.html" target="_blank">обработку персональных данных</a> (152-ФЗ)</span>
-                    </label>
-                    <label class="consent-label">
-                        <input type="checkbox" id="consent-processing" required>
-                        <span>Соглашаюсь с <a href="/terms.html" target="_blank">условиями обработки данных</a></span>
+                <div class="consent-group">
+                    <label>
+                        <input type="checkbox" id="consent-pd" required>
+                        <span>
+                            Я даю согласие на обработку моих <strong>персональных данных</strong> в соответствии с
+                            <a href="privacy-policy.html" target="_blank">Политикой конфиденциальности</a>
+                            и Федеральным законом №152-ФЗ «О персональных данных».
+                        </span>
                     </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
-                <div id="register-error" class="error-message"></div>
+                <div class="consent-group">
+                    <label>
+                        <input type="checkbox" id="consent-terms" required>
+                        <span>
+                            Я принимаю условия <a href="terms.html" target="_blank">Пользовательского соглашения</a>
+                            и даю согласие на получение информационных сообщений.
+                        </span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-login">Зарегистрироваться</button>
+                <div class="form-footer">
+                    <p style="font-size: 12px; color: #a0aec0; margin-top: 10px;">
+                        Регистрируясь, вы подтверждаете, что вам исполнилось 18 лет
+                    </p>
+                </div>
             </form>
 
             <!-- Форма восстановления пароля -->
             <form id="reset-form" class="auth-form">
-                <p class="reset-info">Введите email, на который вы зарегистрированы. Мы отправим ссылку для сброса пароля.</p>
-                <input type="email" id="reset-email" placeholder="Email" required>
-                <button type="submit" class="btn btn-primary btn-block">Отправить ссылку</button>
-                <a href="#" id="back-to-login" class="back-link">← Вернуться к входу</a>
-                <div id="reset-message" class="success-message"></div>
-                <div id="reset-error" class="error-message"></div>
+                <p style="color: #718096; font-size: 14px; margin-bottom: 20px; text-align: center;">
+                    Введите email, на который вы зарегистрированы. Мы отправим ссылку для сброса пароля.
+                </p>
+                <div class="form-group">
+                    <label for="reset-email">Email</label>
+                    <div class="input-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        <input type="email" id="reset-email" placeholder="your@email.com" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">Отправить ссылку</button>
+                <div class="form-footer">
+                    <a href="#" onclick="switchAuthTab('login'); return false;">← Вернуться к входу</a>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Основное приложение (скрыто до авторизации) -->
+    <!-- ============ ОСНОВНОЕ ПРИЛОЖЕНИЕ ============ -->
     <div id="app-screen" class="app-screen" style="display: none;">
-        <!-- Шапка приложения -->
+        <!-- Шапка -->
         <header class="app-header">
             <div class="app-header-left">
                 <span class="logo-icon">🥗</span>
                 <span class="app-title">Питание</span>
             </div>
             <div class="app-header-right">
-                <span id="user-name" class="user-greeting"></span>
-                <button id="logout-btn" class="btn-logout" title="Выйти">⬅️</button>
+                <span id="user-greeting" class="user-greeting"></span>
+                <button id="logout-btn-header" class="btn-logout" title="Выйти">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                </button>
             </div>
         </header>
 
-        <!-- Контент приложения -->
+        <!-- Контент -->
         <main class="app-content">
             <!-- Главная -->
             <section id="tab-home" class="app-tab active">
-                <h2>Добро пожаловать!</h2>
+                <h2 class="tab-title">Добро пожаловать!</h2>
                 <div class="dashboard-grid">
-                    <div class="dash-card" data-action="reports">
+                    <div class="dash-card" onclick="switchAppTab('reports')">
                         <div class="dash-icon">🍽️</div>
-                        <h3>Отчёты о питании</h3>
-                        <p>Записывайте приёмы пищи</p>
+                        <h3>Отчёты</h3>
+                        <p>Приёмы пищи</p>
                     </div>
-                    <div class="dash-card" data-action="measurements">
+                    <div class="dash-card" onclick="switchAppTab('measurements')">
                         <div class="dash-icon">📏</div>
                         <h3>Замеры</h3>
-                        <p>Вес и объёмы тела</p>
+                        <p>Вес и объёмы</p>
                     </div>
-                    <div class="dash-card" data-action="water">
+                    <div class="dash-card" onclick="switchAppTab('water')">
                         <div class="dash-icon">💧</div>
                         <h3>Вода</h3>
-                        <p>Трекер потребления воды</p>
+                        <p>Трекер воды</p>
                     </div>
-                    <div class="dash-card" data-action="chat">
+                    <div class="dash-card" onclick="switchAppTab('chat')">
                         <div class="dash-icon">💬</div>
-                        <h3>Чат с куратором</h3>
-                        <p>Обратная связь</p>
+                        <h3>Чат</h3>
+                        <p>С куратором</p>
                     </div>
-                    <div class="dash-card" data-action="recommendations">
+                    <div class="dash-card" onclick="switchAppTab('recommendations')">
                         <div class="dash-icon">📋</div>
                         <h3>Рекомендации</h3>
-                        <p>Советы от куратора</p>
+                        <p>От куратора</p>
                     </div>
-                    <div class="dash-card" data-action="profile">
+                    <div class="dash-card" onclick="switchAppTab('profile')">
                         <div class="dash-icon">⚙️</div>
                         <h3>Профиль</h3>
                         <p>Настройки</p>
                     </div>
                 </div>
 
-                <!-- Краткая сводка -->
                 <div class="summary-section">
                     <h3>Сегодня</h3>
                     <div class="summary-grid">
@@ -138,12 +202,12 @@
                 </div>
             </section>
 
-            <!-- Отчёты о питании -->
+            <!-- Отчёты -->
             <section id="tab-reports" class="app-tab">
                 <div class="tab-header">
-                    <button class="btn-back" data-back="home">← Назад</button>
+                    <button class="btn-back" onclick="switchAppTab('home')">← Назад</button>
                     <h2>Отчёты о питании</h2>
-                    <button id="add-report-btn" class="btn-add">+</button>
+                    <button class="btn-add" onclick="openModal('report-modal'); setNowDateTime('report-datetime')">+</button>
                 </div>
                 <div id="reports-list" class="reports-list">
                     <p class="empty-state">Нет отчётов. Нажмите + чтобы добавить.</p>
@@ -153,9 +217,9 @@
             <!-- Замеры -->
             <section id="tab-measurements" class="app-tab">
                 <div class="tab-header">
-                    <button class="btn-back" data-back="home">← Назад</button>
+                    <button class="btn-back" onclick="switchAppTab('home')">← Назад</button>
                     <h2>Замеры тела</h2>
-                    <button id="add-measurement-btn" class="btn-add">+</button>
+                    <button class="btn-add" onclick="openModal('measurement-modal'); setNowDateTime('measurement-datetime')">+</button>
                 </div>
                 <div class="measurements-content">
                     <div class="chart-container">
@@ -173,7 +237,7 @@
             <!-- Вода -->
             <section id="tab-water" class="app-tab">
                 <div class="tab-header">
-                    <button class="btn-back" data-back="home">← Назад</button>
+                    <button class="btn-back" onclick="switchAppTab('home')">← Назад</button>
                     <h2>Трекер воды</h2>
                 </div>
                 <div class="water-tracker">
@@ -182,26 +246,24 @@
                             <span id="water-amount">0</span>
                             <span class="water-unit">мл</span>
                         </div>
-                        <div class="water-goal">
-                            <span>Цель: 2000 мл</span>
-                        </div>
+                        <div class="water-goal">Цель: 2000 мл</div>
                     </div>
                     <div class="water-buttons">
-                        <button class="btn-water" data-amount="250">🥤 250 мл</button>
-                        <button class="btn-water" data-amount="500">🍶 500 мл</button>
-                        <button class="btn-water" data-amount="custom">✏️ Своё кол-во</button>
+                        <button class="btn-water" onclick="Water.addWater(250)">🥤 250 мл</button>
+                        <button class="btn-water" onclick="Water.addWater(500)">🍶 500 мл</button>
+                        <button class="btn-water" onclick="openModal('water-custom-modal')">✏️ Своё</button>
                     </div>
                     <div class="chart-container">
-                        <h3>График потребления воды</h3>
+                        <h3>График за 7 дней</h3>
                         <canvas id="water-chart"></canvas>
                     </div>
                 </div>
             </section>
 
-            <!-- Чат с куратором -->
+            <!-- Чат -->
             <section id="tab-chat" class="app-tab">
                 <div class="tab-header">
-                    <button class="btn-back" data-back="home">← Назад</button>
+                    <button class="btn-back" onclick="switchAppTab('home')">← Назад</button>
                     <h2>Чат с куратором</h2>
                 </div>
                 <div class="chat-container">
@@ -210,7 +272,7 @@
                     </div>
                     <div class="chat-input-container">
                         <input type="text" id="chat-input" placeholder="Введите сообщение...">
-                        <button id="chat-send-btn" class="btn-send">➤</button>
+                        <button class="btn-send" onclick="Chat.sendMessage()">➤</button>
                     </div>
                 </div>
             </section>
@@ -218,7 +280,7 @@
             <!-- Рекомендации -->
             <section id="tab-recommendations" class="app-tab">
                 <div class="tab-header">
-                    <button class="btn-back" data-back="home">← Назад</button>
+                    <button class="btn-back" onclick="switchAppTab('home')">← Назад</button>
                     <h2>Рекомендации</h2>
                 </div>
                 <div id="recommendations-list" class="recommendations-list">
@@ -229,7 +291,7 @@
             <!-- Профиль -->
             <section id="tab-profile" class="app-tab">
                 <div class="tab-header">
-                    <button class="btn-back" data-back="home">← Назад</button>
+                    <button class="btn-back" onclick="switchAppTab('home')">← Назад</button>
                     <h2>Профиль</h2>
                 </div>
                 <div class="profile-content">
@@ -237,13 +299,10 @@
                         <h3 id="profile-name"></h3>
                         <p id="profile-email"></p>
                         <p id="profile-phone"></p>
-                        <div class="subscription-badge" id="subscription-status">
-                            Бесплатный тариф
-                        </div>
+                        <div class="subscription-badge" id="subscription-status">Бесплатный тариф</div>
                     </div>
                     <div class="profile-actions">
-                        <button id="edit-profile-btn" class="btn btn-outline">Редактировать профиль</button>
-                        <button id="logout-btn-profile" class="btn btn-danger">Выйти</button>
+                        <button class="btn-logout-full" onclick="handleLogout()">Выйти</button>
                     </div>
                 </div>
             </section>
@@ -251,35 +310,37 @@
 
         <!-- Нижняя навигация -->
         <nav class="app-nav">
-            <button class="nav-item active" data-tab="home">
+            <button class="nav-item active" onclick="switchAppTab('home')">
                 <span class="nav-icon">🏠</span>
-                <span class="nav-label">Главная</span>
+                <span>Главная</span>
             </button>
-            <button class="nav-item" data-tab="reports">
+            <button class="nav-item" onclick="switchAppTab('reports')">
                 <span class="nav-icon">🍽️</span>
-                <span class="nav-label">Отчёты</span>
+                <span>Отчёты</span>
             </button>
-            <button class="nav-item" data-tab="water">
+            <button class="nav-item" onclick="switchAppTab('water')">
                 <span class="nav-icon">💧</span>
-                <span class="nav-label">Вода</span>
+                <span>Вода</span>
             </button>
-            <button class="nav-item" data-tab="chat">
+            <button class="nav-item" onclick="switchAppTab('chat')">
                 <span class="nav-icon">💬</span>
-                <span class="nav-label">Чат</span>
+                <span>Чат</span>
             </button>
-            <button class="nav-item" data-tab="profile">
+            <button class="nav-item" onclick="switchAppTab('profile')">
                 <span class="nav-icon">⚙️</span>
-                <span class="nav-label">Профиль</span>
+                <span>Профиль</span>
             </button>
         </nav>
     </div>
 
-    <!-- Модальное окно: новый отчёт -->
+    <!-- ============ МОДАЛЬНЫЕ ОКНА ============ -->
+
+    <!-- Новый отчёт -->
     <div id="report-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Новый отчёт о питании</h3>
-                <button class="modal-close">&times;</button>
+                <h3>Новый отчёт</h3>
+                <button class="modal-close" onclick="closeModal('report-modal')">&times;</button>
             </div>
             <form id="report-form">
                 <div class="form-group">
@@ -297,8 +358,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Описание (что съели)</label>
-                    <textarea id="report-description" rows="3" required placeholder="Опишите ваш приём пищи..."></textarea>
+                    <label>Описание</label>
+                    <textarea id="report-description" rows="3" required placeholder="Что съели..."></textarea>
                 </div>
                 <div class="form-group">
                     <label>Фото еды</label>
@@ -306,19 +367,19 @@
                 </div>
                 <div class="form-group">
                     <label>Комментарий</label>
-                    <textarea id="report-comment" rows="2" placeholder="Дополнительные заметки..."></textarea>
+                    <textarea id="report-comment" rows="2" placeholder="Заметки..."></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Сохранить отчёт</button>
+                <button type="submit" class="btn-login">Сохранить</button>
             </form>
         </div>
     </div>
 
-    <!-- Модальное окно: новый замер -->
+    <!-- Новый замер -->
     <div id="measurement-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Новый замер</h3>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('measurement-modal')">&times;</button>
             </div>
             <form id="measurement-form">
                 <div class="form-group">
@@ -330,43 +391,43 @@
                     <input type="number" id="measurement-weight" step="0.1" placeholder="65.5">
                 </div>
                 <div class="form-group">
-                    <label>Объём груди (см)</label>
+                    <label>Грудь (см)</label>
                     <input type="number" id="measurement-chest" step="0.1" placeholder="90">
                 </div>
                 <div class="form-group">
-                    <label>Объём талии (см)</label>
+                    <label>Талия (см)</label>
                     <input type="number" id="measurement-waist" step="0.1" placeholder="70">
                 </div>
                 <div class="form-group">
-                    <label>Объём бёдер (см)</label>
+                    <label>Бёдра (см)</label>
                     <input type="number" id="measurement-hips" step="0.1" placeholder="95">
                 </div>
                 <div class="form-group">
                     <label>Заметки</label>
-                    <textarea id="measurement-notes" rows="2" placeholder="Дополнительные заметки..."></textarea>
+                    <textarea id="measurement-notes" rows="2" placeholder="Заметки..."></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Сохранить замер</button>
+                <button type="submit" class="btn-login">Сохранить</button>
             </form>
         </div>
     </div>
 
-    <!-- Модальное окно: кастомное количество воды -->
+    <!-- Кастомная вода -->
     <div id="water-custom-modal" class="modal" style="display: none;">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Количество воды</h3>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="closeModal('water-custom-modal')">&times;</button>
             </div>
             <form id="water-custom-form">
                 <div class="form-group">
                     <input type="number" id="water-custom-amount" placeholder="мл" min="50" max="5000" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Добавить</button>
+                <button type="submit" class="btn-login">Добавить</button>
             </form>
         </div>
     </div>
 
-    <!-- Скрипты -->
+    <!-- ============ СКРИПТЫ ============ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="js/app/config.js"></script>
@@ -376,5 +437,77 @@
     <script src="js/app/water.js"></script>
     <script src="js/app/chat.js"></script>
     <script src="js/app/app.js"></script>
+
+    <!-- Глобальные функции для onclick в HTML -->
+    <script>
+    // Переключение табов авторизации
+    function switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.auth-form').forEach(function(f) { f.classList.remove('active'); });
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById(tab + '-form').classList.add('active');
+        hideMessages();
+    }
+
+    // Переключение табов приложения
+    function switchAppTab(tab) {
+        document.querySelectorAll('.app-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+        document.getElementById('tab-' + tab).classList.add('active');
+        // Подсветка кнопки навигации
+        var navItems = document.querySelectorAll('.nav-item');
+        var tabMap = {'home':0,'reports':1,'water':2,'chat':3,'profile':4};
+        if (tabMap[tab] !== undefined) navItems[tabMap[tab]].classList.add('active');
+
+        // Загрузка данных
+        if (tab === 'reports') Reports.loadReports();
+        if (tab === 'measurements') Measurements.loadMeasurements();
+        if (tab === 'water') Water.loadWater();
+        if (tab === 'chat') Chat.loadMessages();
+        if (tab === 'recommendations') Recommendations.loadRecommendations();
+    }
+
+    // Модалки
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Закрытие модалки по клику на фон
+    document.querySelectorAll('.modal').forEach(function(modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    });
+
+    // Утилиты
+    function setNowDateTime(id) {
+        var now = new Date();
+        var offset = now.getTimezoneOffset();
+        var local = new Date(now.getTime() - offset * 60000);
+        document.getElementById(id).value = local.toISOString().slice(0, 16);
+    }
+
+    function showAuthError(msg) {
+        var el = document.getElementById('auth-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('auth-success').style.display = 'none';
+    }
+
+    function showAuthSuccess(msg) {
+        var el = document.getElementById('auth-success');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('auth-error').style.display = 'none';
+    }
+
+    function hideMessages() {
+        document.getElementById('auth-error').style.display = 'none';
+        document.getElementById('auth-success').style.display = 'none';
+    }
+
+    function showResetForm() {
+        switchAuthTab('reset');
+    }
+    </script>
 </body>
 </html>

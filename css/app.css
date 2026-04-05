@@ -1,72 +1,94 @@
-/* ===== Стили PWA-приложения ===== */
+/* ===== Neumorphic стили PWA-приложения ===== */
 
 .app-body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f2f5;
+    background: #e8ecf1;
     margin: 0;
     padding: 0;
     min-height: 100vh;
 }
 
-/* ===== Экран авторизации ===== */
+/* ===== ЭКРАН АВТОРИЗАЦИИ ===== */
 .auth-screen {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+    background: #e8ecf1;
     padding: 20px;
 }
 
-.auth-container {
-    background: #fff;
-    border-radius: 16px;
-    padding: 30px;
+.login-container {
+    background: #e8ecf1;
+    border-radius: 20px;
+    box-shadow: 8px 8px 20px rgba(163,175,194,0.4), -8px -8px 20px rgba(255,255,255,0.8);
+    padding: 50px 40px;
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    max-width: 440px;
 }
 
-.auth-logo {
+.login-header {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 35px;
 }
 
-.auth-logo .logo-icon {
-    font-size: 3rem;
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4CAF50, #388E3C);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
 }
 
-.auth-logo .logo-text {
-    display: block;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #4CAF50;
-    margin-top: 10px;
+.avatar svg {
+    width: 40px;
+    height: 40px;
+    fill: #2d3748;
 }
 
+.login-header h1 {
+    color: #2d3748;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.login-header p {
+    color: #718096;
+    font-size: 14px;
+}
+
+/* Табы */
 .auth-tabs {
     display: flex;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #e0e0e0;
+    gap: 5px;
+    margin-bottom: 25px;
 }
 
 .auth-tab {
     flex: 1;
-    padding: 12px;
+    padding: 10px;
     border: none;
-    background: none;
-    font-size: 1rem;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 600;
-    color: #666;
     cursor: pointer;
-    transition: 0.3s;
+    background: #e8ecf1;
+    color: #4a5568;
+    box-shadow: 4px 4px 10px rgba(163,175,194,0.4), -4px -4px 10px rgba(255,255,255,0.7);
+    transition: all 0.2s;
 }
 
 .auth-tab.active {
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.5), inset -3px -3px 6px rgba(255,255,255,0.7);
     color: #4CAF50;
-    border-bottom: 2px solid #4CAF50;
 }
 
+/* Формы */
 .auth-form {
     display: none;
 }
@@ -75,93 +97,190 @@
     display: block;
 }
 
-.auth-form input[type="email"],
-.auth-form input[type="password"],
-.auth-form input[type="text"],
-.auth-form input[type="tel"] {
-    width: 100%;
-    padding: 14px;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    font-size: 1rem;
-    transition: 0.3s;
+.form-group {
+    margin-bottom: 22px;
 }
 
-.auth-form input:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-}
-
-.consent-block {
-    margin: 15px 0;
-}
-
-.consent-label {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
+.form-group label {
+    display: block;
+    color: #4a5568;
+    font-size: 13px;
+    font-weight: 500;
     margin-bottom: 10px;
-    font-size: 0.85rem;
-    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper svg {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    fill: #718096;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 15px 20px 15px 50px;
+    background: #e8ecf1;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    color: #2d3748;
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.4), inset -4px -4px 8px rgba(255,255,255,0.8);
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.form-group select {
+    padding-left: 20px;
     cursor: pointer;
 }
 
-.consent-label input[type="checkbox"] {
-    margin-top: 3px;
+.form-group textarea {
+    padding-left: 20px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.5), inset -4px -4px 8px rgba(255,255,255,0.9), 0 0 0 3px rgba(76,175,80,0.2);
+}
+
+/* Согласие */
+.consent-group {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #e8ecf1;
+    border-radius: 12px;
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.3), inset -3px -3px 6px rgba(255,255,255,0.6);
+}
+
+.consent-group label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12px;
+    color: #4a5568;
+    line-height: 1.5;
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-bottom: 0;
+}
+
+.consent-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin-top: 2px;
     accent-color: #4CAF50;
+    cursor: pointer;
 }
 
-.consent-label a {
-    color: #4CAF50;
-}
-
-.btn-block {
-    width: 100%;
-    padding: 14px;
-    font-size: 1rem;
-}
-
-.forgot-link,
-.back-link {
-    display: block;
-    text-align: center;
-    margin-top: 15px;
+.consent-group a {
     color: #4CAF50;
     text-decoration: none;
-    font-size: 0.9rem;
 }
 
-.error-message {
-    color: #d32f2f;
-    font-size: 0.85rem;
-    margin-top: 10px;
+.consent-group a:hover {
+    text-decoration: underline;
+}
+
+/* Кнопка входа */
+.btn-login {
+    width: 100%;
+    padding: 16px;
+    background: #e8ecf1;
+    border: none;
+    border-radius: 12px;
+    color: #2d3748;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 6px 6px 14px rgba(163,175,194,0.55), -6px -6px 14px rgba(255,255,255,0.9);
+    transition: all 0.2s;
+    margin-top: 5px;
+}
+
+.btn-login:hover {
+    box-shadow: 8px 8px 20px rgba(163,175,194,0.65), -8px -8px 20px rgba(255,255,255,1);
+}
+
+.btn-login:active {
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.55), inset -4px -4px 8px rgba(255,255,255,0.7);
+}
+
+.btn-login:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-footer {
     text-align: center;
+    margin-top: 25px;
 }
 
-.success-message {
-    color: #388E3C;
-    font-size: 0.85rem;
-    margin-top: 10px;
-    text-align: center;
+.form-footer a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-size: 14px;
 }
 
-.reset-info {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 15px;
+.form-footer a:hover {
+    text-decoration: underline;
 }
 
-/* ===== Основное приложение ===== */
+.error-msg {
+    background: #fed7d7;
+    color: #c53030;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: none;
+    box-shadow: 3px 3px 8px rgba(163,175,194,0.3), -3px -3px 8px rgba(255,255,255,0.5);
+}
+
+.error-msg.show {
+    display: block;
+}
+
+.success-msg {
+    background: #c6f6d5;
+    color: #276749;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: none;
+    box-shadow: 3px 3px 8px rgba(163,175,194,0.3), -3px -3px 8px rgba(255,255,255,0.5);
+}
+
+.success-msg.show {
+    display: block;
+}
+
+/* ===== ОСНОВНОЕ ПРИЛОЖЕНИЕ ===== */
 .app-screen {
     min-height: 100vh;
+    background: #e8ecf1;
     padding-bottom: 70px;
 }
 
+/* Шапка */
 .app-header {
-    background: #4CAF50;
-    color: #fff;
+    background: #e8ecf1;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
@@ -169,6 +288,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 2px 10px rgba(163,175,194,0.3);
 }
 
 .app-header-left {
@@ -184,6 +304,7 @@
 .app-title {
     font-size: 1.2rem;
     font-weight: 600;
+    color: #2d3748;
 }
 
 .app-header-right {
@@ -194,25 +315,28 @@
 
 .user-greeting {
     font-size: 0.9rem;
+    color: #4a5568;
 }
 
 .btn-logout {
-    background: rgba(255,255,255,0.2);
+    background: #e8ecf1;
     border: none;
-    color: #fff;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 1rem;
-    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 4px 4px 10px rgba(163,175,194,0.4), -4px -4px 10px rgba(255,255,255,0.7);
+    transition: all 0.2s;
 }
 
-.btn-logout:hover {
-    background: rgba(255,255,255,0.3);
+.btn-logout:active {
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.5), inset -3px -3px 6px rgba(255,255,255,0.7);
 }
 
-/* ===== Контент ===== */
+/* Контент */
 .app-content {
     padding: 20px;
     max-width: 800px;
@@ -227,9 +351,10 @@
     display: block;
 }
 
-.app-tab h2 {
+.tab-title {
+    color: #2d3748;
     margin-bottom: 20px;
-    color: #333;
+    font-size: 1.3rem;
 }
 
 /* ===== Главная ===== */
@@ -241,18 +366,17 @@
 }
 
 .dash-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
+    background: #e8ecf1;
+    border-radius: 16px;
+    padding: 25px 15px;
     text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.2s;
 }
 
-.dash-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+.dash-card:active {
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.4), inset -4px -4px 8px rgba(255,255,255,0.7);
 }
 
 .dash-icon {
@@ -262,25 +386,25 @@
 
 .dash-card h3 {
     font-size: 0.95rem;
-    color: #333;
+    color: #2d3748;
     margin-bottom: 5px;
 }
 
 .dash-card p {
     font-size: 0.8rem;
-    color: #666;
+    color: #718096;
 }
 
 .summary-section {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    background: #e8ecf1;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
 }
 
 .summary-section h3 {
     margin-bottom: 15px;
-    color: #333;
+    color: #2d3748;
 }
 
 .summary-grid {
@@ -291,9 +415,10 @@
 
 .summary-item {
     text-align: center;
-    padding: 15px;
-    background: #f5f5f5;
-    border-radius: 10px;
+    padding: 20px;
+    background: #e8ecf1;
+    border-radius: 12px;
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.4), inset -4px -4px 8px rgba(255,255,255,0.8);
 }
 
 .summary-value {
@@ -305,7 +430,7 @@
 
 .summary-label {
     font-size: 0.85rem;
-    color: #666;
+    color: #718096;
 }
 
 /* ===== Табы внутри приложения ===== */
@@ -318,46 +443,56 @@
 
 .tab-header h2 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
+    color: #2d3748;
 }
 
 .btn-back {
-    background: none;
+    background: #e8ecf1;
     border: none;
     color: #4CAF50;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    padding: 5px 10px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px rgba(163,175,194,0.4), -4px -4px 10px rgba(255,255,255,0.7);
+}
+
+.btn-back:active {
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.5), inset -3px -3px 6px rgba(255,255,255,0.7);
 }
 
 .btn-add {
-    background: #4CAF50;
-    color: #fff;
+    background: #e8ecf1;
+    color: #4CAF50;
     border: none;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     font-size: 1.5rem;
     cursor: pointer;
-    transition: 0.3s;
+    box-shadow: 4px 4px 10px rgba(163,175,194,0.4), -4px -4px 10px rgba(255,255,255,0.7);
+    transition: all 0.2s;
 }
 
-.btn-add:hover {
-    background: #388E3C;
+.btn-add:active {
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.5), inset -3px -3px 6px rgba(255,255,255,0.7);
 }
 
-/* ===== Отчёты ===== */
-.reports-list {
+/* ===== Карточки отчётов ===== */
+.reports-list,
+.measurements-list {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
 .report-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    background: #e8ecf1;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
 }
 
 .report-header {
@@ -374,41 +509,42 @@
 
 .report-time {
     font-size: 0.85rem;
-    color: #999;
+    color: #a0aec0;
 }
 
 .report-photo {
     width: 100%;
     max-height: 200px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 12px;
     margin: 10px 0;
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.3), inset -3px -3px 6px rgba(255,255,255,0.5);
 }
 
 .report-description {
-    color: #333;
+    color: #2d3748;
     margin-bottom: 8px;
 }
 
 .report-comment {
     font-size: 0.85rem;
-    color: #666;
+    color: #718096;
     font-style: italic;
 }
 
 /* ===== Графики ===== */
 .chart-container {
-    background: #fff;
-    border-radius: 12px;
-    padding: 15px;
+    background: #e8ecf1;
+    border-radius: 16px;
+    padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
 }
 
 .chart-container h3 {
     margin-bottom: 15px;
     font-size: 1rem;
-    color: #333;
+    color: #2d3748;
 }
 
 /* ===== Трекер воды ===== */
@@ -424,29 +560,29 @@
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2196F3, #1976D2);
+    background: #e8ecf1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     margin: 0 auto 15px;
-    color: #fff;
-    box-shadow: 0 5px 20px rgba(33, 150, 243, 0.3);
+    box-shadow: 8px 8px 20px rgba(163,175,194,0.5), -8px -8px 20px rgba(255,255,255,0.9);
 }
 
 #water-amount {
     font-size: 2.5rem;
     font-weight: 700;
+    color: #2196F3;
 }
 
 .water-unit {
     font-size: 0.9rem;
-    opacity: 0.8;
+    color: #718096;
 }
 
 .water-goal {
     font-size: 0.9rem;
-    color: #666;
+    color: #718096;
 }
 
 .water-buttons {
@@ -459,35 +595,35 @@
 
 .btn-water {
     padding: 12px 20px;
-    border: 2px solid #2196F3;
-    background: #fff;
-    color: #2196F3;
-    border-radius: 25px;
+    background: #e8ecf1;
+    border: none;
+    color: #2d3748;
+    border-radius: 12px;
     font-size: 0.95rem;
     cursor: pointer;
-    transition: 0.3s;
+    box-shadow: 4px 4px 10px rgba(163,175,194,0.4), -4px -4px 10px rgba(255,255,255,0.7);
+    transition: all 0.2s;
 }
 
-.btn-water:hover {
-    background: #2196F3;
-    color: #fff;
+.btn-water:active {
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.5), inset -3px -3px 6px rgba(255,255,255,0.7);
 }
 
 /* ===== Чат ===== */
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 180px);
+    height: calc(100vh - 200px);
 }
 
 .chat-messages {
     flex: 1;
     overflow-y: auto;
     padding: 15px;
-    background: #fff;
-    border-radius: 12px;
+    background: #e8ecf1;
+    border-radius: 16px;
     margin-bottom: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
 }
 
 .chat-message {
@@ -516,17 +652,19 @@
     background: #4CAF50;
     color: #fff;
     border-bottom-right-radius: 4px;
+    box-shadow: 3px 3px 8px rgba(76,175,80,0.3);
 }
 
 .chat-message.received .chat-bubble {
-    background: #f0f0f0;
-    color: #333;
+    background: #e8ecf1;
+    color: #2d3748;
     border-bottom-left-radius: 4px;
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.3), inset -3px -3px 6px rgba(255,255,255,0.6);
 }
 
 .chat-time {
     font-size: 0.75rem;
-    color: #999;
+    color: #a0aec0;
     margin-top: 5px;
 }
 
@@ -537,31 +675,35 @@
 
 #chat-input {
     flex: 1;
-    padding: 14px;
-    border: 1px solid #e0e0e0;
+    padding: 14px 18px;
+    background: #e8ecf1;
+    border: none;
     border-radius: 25px;
     font-size: 1rem;
+    color: #2d3748;
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.4), inset -4px -4px 8px rgba(255,255,255,0.8);
 }
 
 #chat-input:focus {
     outline: none;
-    border-color: #4CAF50;
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.5), inset -4px -4px 8px rgba(255,255,255,0.9), 0 0 0 3px rgba(76,175,80,0.2);
 }
 
 .btn-send {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: #4CAF50;
-    color: #fff;
+    background: #e8ecf1;
+    color: #4CAF50;
     border: none;
     font-size: 1.2rem;
     cursor: pointer;
-    transition: 0.3s;
+    box-shadow: 4px 4px 10px rgba(163,175,194,0.4), -4px -4px 10px rgba(255,255,255,0.7);
+    transition: all 0.2s;
 }
 
-.btn-send:hover {
-    background: #388E3C;
+.btn-send:active {
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.5), inset -3px -3px 6px rgba(255,255,255,0.7);
 }
 
 /* ===== Рекомендации ===== */
@@ -572,10 +714,10 @@
 }
 
 .recommendation-card {
-    background: #fff;
-    border-radius: 12px;
+    background: #e8ecf1;
+    border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
     border-left: 4px solid #4CAF50;
 }
 
@@ -585,26 +727,26 @@
 
 .recommendation-title {
     font-weight: 600;
-    color: #333;
+    color: #2d3748;
     margin-bottom: 10px;
 }
 
 .recommendation-content {
-    color: #666;
+    color: #4a5568;
     margin-bottom: 10px;
 }
 
 .recommendation-date {
     font-size: 0.8rem;
-    color: #999;
+    color: #a0aec0;
 }
 
 /* ===== Профиль ===== */
 .profile-content {
-    background: #fff;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    background: #e8ecf1;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 6px 6px 15px rgba(163,175,194,0.4), -6px -6px 15px rgba(255,255,255,0.8);
 }
 
 .profile-info {
@@ -613,12 +755,12 @@
 }
 
 .profile-info h3 {
-    color: #333;
+    color: #2d3748;
     margin-bottom: 5px;
 }
 
 .profile-info p {
-    color: #666;
+    color: #718096;
     font-size: 0.9rem;
     margin-bottom: 5px;
 }
@@ -626,17 +768,18 @@
 .subscription-badge {
     display: inline-block;
     padding: 6px 16px;
-    background: #e8f5e9;
-    color: #388E3C;
+    background: #e8ecf1;
+    color: #4a5568;
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 600;
     margin-top: 10px;
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.3), inset -3px -3px 6px rgba(255,255,255,0.6);
 }
 
 .subscription-badge.paid {
-    background: #fff3e0;
     color: #f57c00;
+    box-shadow: inset 3px 3px 6px rgba(255,152,0,0.2), inset -3px -3px 6px rgba(255,255,255,0.6);
 }
 
 .profile-actions {
@@ -645,19 +788,21 @@
     gap: 12px;
 }
 
-.btn-danger {
-    background: #d32f2f;
-    color: #fff;
+.btn-logout-full {
+    background: #e8ecf1;
+    color: #d32f2f;
     border: none;
     padding: 14px;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
+    box-shadow: 6px 6px 14px rgba(163,175,194,0.55), -6px -6px 14px rgba(255,255,255,0.9);
+    transition: all 0.2s;
 }
 
-.btn-danger:hover {
-    background: #b71c1c;
+.btn-logout-full:active {
+    box-shadow: inset 4px 4px 8px rgba(163,175,194,0.55), inset -4px -4px 8px rgba(255,255,255,0.7);
 }
 
 /* ===== Нижняя навигация ===== */
@@ -666,11 +811,11 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #fff;
+    background: #e8ecf1;
     display: flex;
     justify-content: space-around;
-    padding: 10px 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    padding: 10px 0 15px;
+    box-shadow: 0 -4px 15px rgba(163,175,194,0.3);
     z-index: 100;
 }
 
@@ -681,11 +826,12 @@
     gap: 4px;
     background: none;
     border: none;
-    color: #999;
+    color: #a0aec0;
     font-size: 0.7rem;
     cursor: pointer;
     padding: 5px 10px;
-    transition: 0.3s;
+    border-radius: 12px;
+    transition: all 0.2s;
 }
 
 .nav-item .nav-icon {
@@ -694,6 +840,7 @@
 
 .nav-item.active {
     color: #4CAF50;
+    box-shadow: inset 3px 3px 6px rgba(163,175,194,0.4), inset -3px -3px 6px rgba(255,255,255,0.7);
 }
 
 /* ===== Модальные окна ===== */
@@ -703,7 +850,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -712,12 +859,13 @@
 }
 
 .modal-content {
-    background: #fff;
-    border-radius: 16px;
+    background: #e8ecf1;
+    border-radius: 20px;
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+    box-shadow: 8px 8px 20px rgba(163,175,194,0.5), -8px -8px 20px rgba(255,255,255,0.9);
 }
 
 .modal-small {
@@ -728,67 +876,59 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #e0e0e0;
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(163,175,194,0.3);
 }
 
 .modal-header h3 {
     margin: 0;
     font-size: 1.1rem;
+    color: #2d3748;
 }
 
 .modal-close {
-    background: none;
+    background: #e8ecf1;
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: #666;
+    color: #718096;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 3px 3px 8px rgba(163,175,194,0.4), -3px -3px 8px rgba(255,255,255,0.7);
+}
+
+.modal-close:active {
+    box-shadow: inset 2px 2px 5px rgba(163,175,194,0.5), inset -2px -2px 5px rgba(255,255,255,0.7);
 }
 
 .modal-content form {
-    padding: 20px;
+    padding: 25px;
 }
 
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    color: #333;
-    font-size: 0.9rem;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #4CAF50;
+.modal-content .form-group input,
+.modal-content .form-group select,
+.modal-content .form-group textarea {
+    padding-left: 20px;
 }
 
 /* ===== Пустое состояние ===== */
 .empty-state {
     text-align: center;
-    color: #999;
+    color: #a0aec0;
     padding: 40px 20px;
     font-size: 0.95rem;
 }
 
 /* ===== Адаптивность ===== */
 @media (max-width: 480px) {
+    .login-container {
+        padding: 35px 25px;
+    }
+
     .dashboard-grid {
         grid-template-columns: 1fr 1fr;
     }
@@ -799,5 +939,9 @@
 
     .btn-water {
         width: 100%;
+    }
+
+    .chat-container {
+        height: calc(100vh - 180px);
     }
 }

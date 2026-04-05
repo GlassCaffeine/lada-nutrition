@@ -1,172 +1,172 @@
 // Модуль авторизации Supabase
 
-const Auth = {
+var Auth = {
     
     // ===== РЕГИСТРАЦИЯ =====
-    async register(email, password, fullName, phone, consentPersonal, consentProcessing) {
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: fullName,
-                        consent_personal_data: consentPersonal,
-                        consent_processing: consentProcessing
-                    }
+    register: function(email, password, fullName, phone, consentPersonal, consentProcessing) {
+        return supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: fullName,
+                    consent_personal_data: consentPersonal,
+                    consent_processing: consentProcessing
                 }
-            });
-
-            if (error) throw error;
-
-            // Профиль создастся автоматически через триггер
-            console.log('Регистрация успешна:', data);
-            return { success: true, user: data.user };
-        } catch (error) {
+            }
+        }).then(function(result) {
+            if (result.error) throw result.error;
+            console.log('Регистрация успешна:', result.data);
+            return { success: true, user: result.data.user };
+        }).catch(function(error) {
             console.error('Ошибка регистрации:', error);
             return { success: false, error: error.message };
-        }
+        });
     },
 
     // ===== ВХОД =====
-    async login(email, password) {
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-
-            if (error) throw error;
-
-            console.log('Вход успешен:', data);
-            return { success: true, user: data.user, session: data.session };
-        } catch (error) {
+    login: function(email, password) {
+        return supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        }).then(function(result) {
+            if (result.error) throw result.error;
+            console.log('Вход успешен:', result.data);
+            return { success: true, user: result.data.user, session: result.data.session };
+        }).catch(function(error) {
             console.error('Ошибка входа:', error);
             return { success: false, error: error.message };
-        }
+        });
     },
 
     // ===== ВЫХОД =====
-    async logout() {
-        try {
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
+    logout: function() {
+        return supabase.auth.signOut().then(function(result) {
+            if (result.error) throw result.error;
             return { success: true };
-        } catch (error) {
+        }).catch(function(error) {
             console.error('Ошибка выхода:', error);
             return { success: false, error: error.message };
-        }
+        });
     },
 
     // ===== ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ =====
-    async getCurrentUser() {
-        const { data } = await supabase.auth.getUser();
-        return data.user;
+    getCurrentUser: function() {
+        return supabase.auth.getUser().then(function(result) {
+            return result.data ? result.data.user : null;
+        });
     },
 
     // ===== СЕССИЯ =====
-    async getSession() {
-        const { data } = await supabase.auth.getSession();
-        return data.session;
+    getSession: function() {
+        return supabase.auth.getSession().then(function(result) {
+            return result.data ? result.data.session : null;
+        });
     },
 
     // ===== СЛУШАТЕЛЬ ИЗМЕНЕНИЙ АВТОРИЗАЦИИ =====
-    onAuthStateChange(callback) {
-        return supabase.auth.onAuthStateChange((event, session) => {
+    onAuthStateChange: function(callback) {
+        return supabase.auth.onAuthStateChange(function(event, session) {
             callback(event, session);
         });
     },
 
     // ===== ВОССТАНОВЛЕНИЕ ПАРОЛЯ =====
-    async resetPassword(email) {
-        try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/reset-password.html'
-            });
-            if (error) throw error;
+    resetPassword: function(email) {
+        return supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/lada-nutrition/reset-password.html'
+        }).then(function(result) {
+            if (result.error) throw result.error;
             return { success: true };
-        } catch (error) {
+        }).catch(function(error) {
             console.error('Ошибка восстановления пароля:', error);
             return { success: false, error: error.message };
-        }
+        });
     },
 
     // ===== ОБНОВЛЕНИЕ ПАРОЛЯ =====
-    async updatePassword(newPassword) {
-        try {
-            const { error } = await supabase.auth.updateUser({
-                password: newPassword
-            });
-            if (error) throw error;
+    updatePassword: function(newPassword) {
+        return supabase.auth.updateUser({
+            password: newPassword
+        }).then(function(result) {
+            if (result.error) throw result.error;
             return { success: true };
-        } catch (error) {
+        }).catch(function(error) {
             console.error('Ошибка обновления пароля:', error);
             return { success: false, error: error.message };
-        }
+        });
     },
 
     // ===== ПОЛУЧИТЬ ПРОФИЛЬ =====
-    async getProfile(userId = null) {
-        try {
-            const id = userId || (await this.getCurrentUser())?.id;
-            if (!id) throw new Error('Пользователь не авторизован');
-
-            const { data, error } = await supabase
+    getProfile: function(userId) {
+        var self = this;
+        return this.getCurrentUser().then(function(user) {
+            var id = userId || (user ? user.id : null);
+            if (!id) {
+                return { success: false, error: 'Пользователь не авторизован' };
+            }
+            return supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', id)
-                .single();
-
-            if (error) throw error;
-            return { success: true, profile: data };
-        } catch (error) {
-            console.error('Ошибка получения профиля:', error);
-            return { success: false, error: error.message };
-        }
+                .single()
+                .then(function(result) {
+                    if (result.error) throw result.error;
+                    return { success: true, profile: result.data };
+                })
+                .catch(function(error) {
+                    console.error('Ошибка получения профиля:', error);
+                    return { success: false, error: error.message };
+                });
+        });
     },
 
     // ===== ОБНОВИТЬ ПРОФИЛЬ =====
-    async updateProfile(updates) {
-        try {
-            const user = await this.getCurrentUser();
-            if (!user) throw new Error('Пользователь не авторизован');
-
-            const { data, error } = await supabase
+    updateProfile: function(updates) {
+        var self = this;
+        return this.getCurrentUser().then(function(user) {
+            if (!user) {
+                return { success: false, error: 'Пользователь не авторизован' };
+            }
+            return supabase
                 .from('profiles')
                 .update(updates)
                 .eq('id', user.id)
                 .select()
-                .single();
-
-            if (error) throw error;
-            return { success: true, profile: data };
-        } catch (error) {
-            console.error('Ошибка обновления профиля:', error);
-            return { success: false, error: error.message };
-        }
+                .single()
+                .then(function(result) {
+                    if (result.error) throw result.error;
+                    return { success: true, profile: result.data };
+                })
+                .catch(function(error) {
+                    console.error('Ошибка обновления профиля:', error);
+                    return { success: false, error: error.message };
+                });
+        });
     },
 
     // ===== ПРОВЕРИТЬ РОЛЬ =====
-    async isCurator() {
-        const result = await this.getProfile();
-        if (!result.success) return false;
-        return result.profile.role === 'curator' || result.profile.role === 'admin';
+    isCurator: function() {
+        return this.getProfile().then(function(result) {
+            if (!result.success) return false;
+            return result.profile.role === 'curator' || result.profile.role === 'admin';
+        });
     },
 
     // ===== ПРОВЕРИТЬ ПОДПИСКУ =====
-    async hasActiveSubscription() {
-        const result = await this.getProfile();
-        if (!result.success) return false;
-        
-        const profile = result.profile;
-        if (profile.subscription_status === 'free') return false;
-        
-        // Проверяем дату окончания подписки
-        if (profile.subscription_end) {
-            const endDate = new Date(profile.subscription_end);
-            if (endDate < new Date()) return false;
-        }
-        
-        return true;
+    hasActiveSubscription: function() {
+        return this.getProfile().then(function(result) {
+            if (!result.success) return false;
+            
+            var profile = result.profile;
+            if (profile.subscription_status === 'free') return false;
+            
+            if (profile.subscription_end) {
+                var endDate = new Date(profile.subscription_end);
+                if (endDate < new Date()) return false;
+            }
+            
+            return true;
+        });
     }
 };
