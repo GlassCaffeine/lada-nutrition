@@ -1102,7 +1102,7 @@
                     </div>
 
                     <!-- График объёмов -->
-                    <div class="card" id="bodyCardDash" style="display:none;">
+                    <div class="card" id="bodyCardDash">
                         <div class="card-header">
                             <h2>Объёмы</h2>
                             <button class="btn-water" onclick="showBodyModal()" style="font-size:12px;">+ Объёмы</button>
@@ -1462,16 +1462,8 @@
                     updateWeightChart(7);
                     updateWeightDetailChart(7);
                     
-                    // Проверяем есть ли данные объёмов
-                    var hasBodyData = weightData.some(function(d) { return d.chest || d.waist || d.hips; });
-                    if (hasBodyData) {
-                        document.getElementById('bodyCard').style.display = 'block';
-                        document.getElementById('bodyCardDash').style.display = 'block';
-                        updateBodyChartDash();
-                    } else {
-                        document.getElementById('bodyCard').style.display = 'none';
-                        document.getElementById('bodyCardDash').style.display = 'none';
-                    }
+                    // Обновляем график объёмов на главном экране
+                    updateBodyChartDash();
                 })
                 .catch(function(err) {
                     console.error('Ошибка загрузки веса:', err);
@@ -1994,6 +1986,17 @@
             if (!bodyChartDash) return;
             
             var filtered = weightData.filter(function(d) { return d.chest || d.waist || d.hips; });
+            
+            // Если нет данных объёмов — показываем пустой график
+            if (filtered.length === 0) {
+                bodyChartDash.data.labels = ['Нет данных'];
+                bodyChartDash.data.datasets[0].data = [null];
+                bodyChartDash.data.datasets[1].data = [null];
+                bodyChartDash.data.datasets[2].data = [null];
+                bodyChartDash.update();
+                return;
+            }
+            
             // Берём последние 7 записей с объёмами
             filtered = filtered.slice(-7);
 
