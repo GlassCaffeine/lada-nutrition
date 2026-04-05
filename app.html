@@ -1022,6 +1022,18 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="body">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        <span>Объёмы</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="chat">
+                        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+                        <span>Чат</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#" class="nav-link" data-section="water">
                         <svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg>
                         <span>Вода</span>
@@ -1223,6 +1235,47 @@
                     </div>
                     <div class="chart-container" style="height: 350px;">
                         <canvas id="waterDetailChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция Объёмы -->
+            <section id="body" class="section">
+                <div class="header">
+                    <div>
+                        <h1>Объёмы тела</h1>
+                        <p>Динамика изменений</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>График объёмов</h2>
+                    </div>
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="bodyChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция Чат -->
+            <section id="chat" class="section">
+                <div class="header">
+                    <div>
+                        <h1>Чат с куратором</h1>
+                        <p>Связь с Ладой</p>
+                    </div>
+                </div>
+                <div class="card" style="padding:0;overflow:hidden;">
+                    <div id="chatMessages" style="height:400px;overflow-y:auto;padding:20px;background:#e8ecf1;">
+                        <div style="text-align:center;color:#a0aec0;padding:40px 20px;">
+                            <p>💬 Пока нет сообщений</p>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;padding:15px;border-top:1px solid rgba(163,175,194,0.3);">
+                        <input type="text" id="chatInput" class="form-control" placeholder="Введите сообщение..." style="flex:1;border-radius:25px;padding:12px 20px;">
+                        <button class="btn-save" onclick="sendChatMessage()" style="width:50px;height:50px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;">
+                            <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#2d3748;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -1450,6 +1503,28 @@
                         y: { beginAtZero: true, grid: { color: 'rgba(163, 175, 194, 0.3)' }, ticks: { color: '#718096' } },
                         x: { grid: { display: false }, ticks: { color: '#718096' } }
                     }
+                }
+            });
+        }
+
+        // График объёмов (добавляем после инициализации основных графиков)
+        var bodyChartCtx = document.getElementById('bodyChart');
+        if (bodyChartCtx) {
+            window.bodyChart = new Chart(bodyChartCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Грудь', data: [], borderColor: '#e53e3e', borderWidth: 2, tension: 0.4, fill: false },
+                        { label: 'Талия', data: [], borderColor: '#38a169', borderWidth: 2, tension: 0.4, fill: false },
+                        { label: 'Бёдра', data: [], borderColor: '#3182ce', borderWidth: 2, tension: 0.4, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: false }, x: { grid: { display: false } } }
                 }
             });
         }
@@ -1803,6 +1878,159 @@
             });
         }
 
+        // ===== СОХРАНЕНИЕ ДАННЫХ В SUPABASE =====
+        
+        function saveWeight() {
+            var kg = parseInt(document.getElementById('weightKg').value) || 0;
+            var g = parseInt(document.getElementById('weightG').value) || 0;
+            var weight = kg + g / 1000;
+
+            supabase.from('measurements').insert({
+                user_id: currentUser.id,
+                measurement_date: document.getElementById('weightDate').value,
+                measurement_time: document.getElementById('weightTime').value,
+                weight: weight
+            }).then(function(result) {
+                if (result.error) {
+                    showToast('Ошибка: ' + result.error.message);
+                    return;
+                }
+                showToast('✓ Вес сохранен!');
+                closeResultModal();
+                document.getElementById('weightForm').reset();
+                setDefaultDates();
+                loadWeightData();
+            });
+        }
+
+        function saveWater() {
+            var amount = parseInt(document.getElementById('waterAmount').value);
+            supabase.from('water_intake').insert({
+                user_id: currentUser.id,
+                intake_date: document.getElementById('waterDate').value,
+                intake_time: document.getElementById('waterTime').value || new Date().toTimeString().slice(0,5),
+                amount_ml: amount
+            }).then(function(result) {
+                if (result.error) {
+                    showToast('Ошибка: ' + result.error.message);
+                    return;
+                }
+                showToast('✓ Вода добавлена!');
+                closeWaterModal();
+                document.getElementById('waterForm').reset();
+                setDefaultDates();
+                loadWaterData();
+            });
+        }
+
+        function saveMeal() {
+            supabase.from('reports').insert({
+                user_id: currentUser.id,
+                report_date: document.getElementById('mealDate').value,
+                report_time: document.getElementById('mealTime').value,
+                meal_type: document.getElementById('mealType').value,
+                description: document.getElementById('mealDescription').value
+            }).then(function(result) {
+                if (result.error) {
+                    showToast('Ошибка: ' + result.error.message);
+                    return;
+                }
+                showToast('✓ Прием пищи сохранен!');
+                document.getElementById('mealForm').reset();
+                setDefaultDates();
+            });
+        }
+
+        // ===== ЧАТ С КУРАТОРОМ =====
+
+        function loadChatMessages() {
+            supabase.from('messages').select('id, content, sender_role, created_at').eq('user_id', currentUser.id).order('created_at', {ascending: true}).limit(50)
+                .then(function(result) {
+                    if (result.data && result.data.length > 0) {
+                        var container = document.getElementById('chatMessages');
+                        var html = '';
+                        result.data.forEach(function(msg) {
+                            var isClient = msg.sender_role === 'client';
+                            var time = new Date(msg.created_at).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+                            html += '<div style="display:flex;justify-content:' + (isClient ? 'flex-end' : 'flex-start') + ';margin-bottom:12px;">';
+                            html += '<div style="max-width:70%;padding:12px 16px;border-radius:16px;background:' + (isClient ? '#667eea;color:#fff;' : '#e8ecf1;color:#2d3748;') + '">';
+                            html += '<div style="font-size:14px;">' + msg.content + '</div>';
+                            html += '<div style="font-size:11px;color:' + (isClient ? 'rgba(255,255,255,0.7)' : '#a0aec0') + ';margin-top:4px;text-align:right;">' + time + '</div>';
+                            html += '</div></div>';
+                        });
+                        container.innerHTML = html;
+                        container.scrollTop = container.scrollHeight;
+                    }
+                });
+        }
+
+        function sendChatMessage() {
+            var input = document.getElementById('chatInput');
+            var content = input.value.trim();
+            if (!content) return;
+            supabase.from('messages').insert({user_id: currentUser.id, content: content, sender_role: 'client', is_read: false})
+                .then(function(result) {
+                    if (result.error) { showToast('Ошибка: ' + result.error.message); return; }
+                    input.value = '';
+                    loadChatMessages();
+                });
+        }
+
+        // ===== ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE =====
+        
+        function loadUserProfile() {
+            supabase.from('profiles').select('full_name, email').eq('id', currentUser.id).single()
+                .then(function(result) {
+                    if (result.data) {
+                        var nameEl = document.querySelector('.avatar-section h3');
+                        if (nameEl) nameEl.textContent = result.data.full_name || currentUser.email;
+                        var emailEl = document.querySelector('.avatar-section p');
+                        if (emailEl) emailEl.textContent = 'ID: ' + currentUser.id.slice(0, 8);
+                    }
+                });
+        }
+
+        function loadWeightData() {
+            supabase.from('measurements').select('measurement_date, weight, chest, waist, hips').eq('user_id', currentUser.id).order('measurement_date', {ascending: true})
+                .then(function(result) {
+                    if (result.data) {
+                        weightData = result.data.map(function(row) {
+                            return { date: row.measurement_date, weight: parseFloat(row.weight), chest: row.chest, waist: row.waist, hips: row.hips };
+                        });
+                        updateWeightChart(7);
+                        updateWeightDetailChart(7);
+                        // Обновляем график объёмов если есть данные
+                        var bodyData = weightData.filter(function(d) { return d.chest || d.waist || d.hips; });
+                        if (bodyData.length > 0 && window.bodyChart) {
+                            window.bodyChart.data.labels = bodyData.map(function(d) { return new Date(d.date).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); });
+                            window.bodyChart.data.datasets[0].data = bodyData.map(function(d) { return d.chest; });
+                            window.bodyChart.data.datasets[1].data = bodyData.map(function(d) { return d.waist; });
+                            window.bodyChart.data.datasets[2].data = bodyData.map(function(d) { return d.hips; });
+                            window.bodyChart.update();
+                        }
+                    }
+                });
+        }
+
+        function loadWaterData() {
+            supabase.from('water_intake').select('intake_date, amount_ml').eq('user_id', currentUser.id).order('intake_date', {ascending: true})
+                .then(function(result) {
+                    if (result.data) {
+                        var aggregated = {};
+                        result.data.forEach(function(row) {
+                            if (!aggregated[row.intake_date]) aggregated[row.intake_date] = 0;
+                            aggregated[row.intake_date] += row.amount_ml;
+                        });
+                        waterData = Object.keys(aggregated).map(function(date) {
+                            return { date: date, amount: aggregated[date] };
+                        });
+                        waterData.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+                        updateWaterChart();
+                        updateWaterDetailChart();
+                    }
+                });
+        }
+
         // ===== ЕДИНЫЙ DOMContentLoaded С AUTH CHECK =====
         document.addEventListener('DOMContentLoaded', function() {
             setCurrentDate();
@@ -1816,11 +2044,10 @@
                 if (result.data && result.data.session) {
                     currentUser = result.data.session.user;
                     console.log('Пользователь авторизован:', currentUser.email);
-                    // Здесь можно загрузить данные из Supabase
-                    // loadUserProfile();
-                    // loadWeightData();
-                    // loadWaterData();
-                    // loadRecommendations();
+                    loadUserProfile();
+                    loadWeightData();
+                    loadWaterData();
+                    loadChatMessages();
                 } else {
                     console.log('Нет сессии, редирект на вход');
                     window.location.href = 'GS_Login.html';
@@ -1829,6 +2056,14 @@
                 console.error('Ошибка проверки сессии:', err);
                 window.location.href = 'GS_Login.html';
             });
+
+            // Обработка Enter в чате
+            var chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') sendChatMessage();
+                });
+            }
         });
     </script>
 </body>
