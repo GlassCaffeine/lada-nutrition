@@ -426,13 +426,20 @@
             .reviews-grid { grid-template-columns: 1fr; gap: 12px; }
             
             /* О нас, Метод, Марафон */
-            .about-grid { grid-template-columns: 1fr; }
-            .about-text-card { grid-column: 1 / -1; }
-            .method-grid { grid-template-columns: 1fr; }
-            .method-steps-card, .method-problems-card { grid-column: 1 / -1; }
-            .marathon-grid { grid-template-columns: 1fr; }
-            .marathon-benefits-card, .marathon-app-card { grid-column: 1 / -1; }
-            .app-features-grid { grid-template-columns: 1fr; }
+            .about-grid { grid-template-columns: 1fr; gap: 15px; }
+            .about-text-card { grid-column: 1 / -1; padding: 20px 16px !important; }
+            .about-text-card p { font-size: 14px !important; line-height: 1.6 !important; }
+            .about-text-card h3 { font-size: 18px !important; margin-bottom: 12px !important; }
+            .method-grid { grid-template-columns: 1fr; gap: 15px; }
+            .method-steps-card, .method-problems-card { grid-column: 1 / -1; padding: 20px 16px !important; }
+            .marathon-grid { grid-template-columns: 1fr; gap: 15px; }
+            .marathon-benefits-card, .marathon-app-card { grid-column: 1 / -1; padding: 20px 16px !important; }
+            .app-features-grid { grid-template-columns: 1fr; gap: 12px; }
+            
+            /* Сертификаты на мобильных */
+            .certs-grid { grid-template-columns: 1fr 1fr; gap: 10px; max-width: 260px; margin: 20px auto 0; }
+            .cert-placeholder { height: 120px; font-size: 11px; padding: 8px; border-radius: 12px; }
+            .cert-card { border-radius: 12px; }
             
             /* Секции */
             .section-title { font-size: 20px; }
