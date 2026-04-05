@@ -1192,9 +1192,14 @@
                         <h1>Отслеживание веса</h1>
                         <p>Ваш прогресс</p>
                     </div>
-                    <button class="btn-result" onclick="showResultModal()">
-                        + Внести результат
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-result" onclick="showResultModal()">
+                            + Вес
+                        </button>
+                        <button class="btn-result" onclick="showBodyModal()">
+                            + Объёмы
+                        </button>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -1274,10 +1279,35 @@
                 </div>
                 <div class="form-group">
                     <label for="weightKg">Вес (кг)</label>
-                    <input type="number" id="weightKg" class="form-control" placeholder="Например: 65.5" step="0.1" min="20" max="300" required>
+                    <input type="number" id="weightKg" class="form-control" placeholder="Например: 65.5" step="0.1" min="1" max="300" required>
+                </div>
+                <button type="submit" class="btn-save">Сохранить вес</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для объёмов тела -->
+    <div class="modal-overlay" id="bodyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Объёмы тела</h2>
+                <button class="modal-close" onclick="closeBodyModal()">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <form id="bodyForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bodyDate">Дата</label>
+                        <input type="date" id="bodyDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bodyTime">Время</label>
+                        <input type="time" id="bodyTime" class="form-control" required>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Объёмы тела (см)</label>
+                    <label>Объёмы (см)</label>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <input type="number" id="chest" class="form-control" placeholder="Грудь" step="0.1" min="0">
                         <input type="number" id="waist" class="form-control" placeholder="Талия" step="0.1" min="0">
@@ -1289,10 +1319,10 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="weightNote">Заметка</label>
-                    <textarea id="weightNote" class="form-control" placeholder="Дополнительные заметки..." rows="3"></textarea>
+                    <label for="bodyNote">Заметка</label>
+                    <textarea id="bodyNote" class="form-control" placeholder="Дополнительные заметки..." rows="3"></textarea>
                 </div>
-                <button type="submit" class="btn-save">Сохранить</button>
+                <button type="submit" class="btn-save">Сохранить объёмы</button>
             </form>
         </div>
     </div>
@@ -1440,13 +1470,13 @@
                 .limit(5)
                 .then(function(result) {
                     if (result.error || !result.data || result.data.length === 0) {
-                        // Fallback на хардкод если нет рекомендаций
-                        console.log('Нет рекомендаций из базы, использую хардкод');
-                        rotateRecommendation();
+                        // Нет рекомендаций — скрываем карточку
+                        document.getElementById('curatorCard').style.display = 'none';
                         return;
                     }
                     // Показываем последнюю рекомендацию
                     var rec = result.data[0];
+                    document.getElementById('curatorCard').style.display = 'flex';
                     document.getElementById('curatorText').innerHTML = rec.content;
                     var titleText = rec.title || 'Рекомендация куратора';
                     var dateStr = new Date(rec.created_at).toLocaleDateString('ru-RU', {
@@ -1465,7 +1495,7 @@
                 })
                 .catch(function(err) {
                     console.error('Ошибка загрузки рекомендаций:', err);
-                    rotateRecommendation();
+                    document.getElementById('curatorCard').style.display = 'none';
                 });
         }
 
@@ -1568,6 +1598,12 @@
             document.getElementById('waterForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 saveWater();
+            });
+
+            // Форма объёмов
+            document.getElementById('bodyForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveBody();
             });
         }
 
@@ -1949,12 +1985,12 @@
                 });
         }
 
-        // Сохранение веса и объёмов в Supabase (measurements)
+        // Сохранение ВЕСА в Supabase (measurements - только вес)
         function saveWeight() {
             var weight = parseFloat(document.getElementById('weightKg').value);
-            
-            if (!weight || weight < 20 || weight > 300) {
-                showToast('Введите корректный вес (20-300 кг)');
+
+            if (!weight || weight < 1 || weight > 300) {
+                showToast('Введите корректный вес (1-300 кг)');
                 return;
             }
 
@@ -1962,18 +1998,10 @@
                 user_id: currentUser.id,
                 measurement_date: document.getElementById('weightDate').value,
                 measurement_time: document.getElementById('weightTime').value,
-                weight: weight,
-                chest: document.getElementById('chest').value ? parseFloat(document.getElementById('chest').value) : null,
-                waist: document.getElementById('waist').value ? parseFloat(document.getElementById('waist').value) : null,
-                hips: document.getElementById('hips').value ? parseFloat(document.getElementById('hips').value) : null,
-                left_arm: document.getElementById('leftArm').value ? parseFloat(document.getElementById('leftArm').value) : null,
-                right_arm: document.getElementById('rightArm').value ? parseFloat(document.getElementById('rightArm').value) : null,
-                left_thigh: document.getElementById('leftThigh').value ? parseFloat(document.getElementById('leftThigh').value) : null,
-                right_thigh: document.getElementById('rightThigh').value ? parseFloat(document.getElementById('rightThigh').value) : null,
-                notes: document.getElementById('weightNote') ? document.getElementById('weightNote').value : null
+                weight: weight
             };
 
-            console.log('Сохраняю замеры:', measurementData);
+            console.log('Сохраняю вес:', measurementData);
 
             supabase
                 .from('measurements')
@@ -1984,16 +2012,62 @@
                         showToast('Ошибка: ' + result.error.message);
                         return;
                     }
-                    console.log('Замеры сохранены!');
-                    showToast('✓ Данные сохранены!');
+                    console.log('Вес сохранён!');
+                    showToast('✓ Вес сохранен!');
                     closeResultModal();
                     document.getElementById('weightForm').reset();
                     setDefaultDates();
-                    // Перезагружаем данные
                     loadWeightData();
                 })
                 .catch(function(err) {
-                    console.error('Ошибка сохранения замеров:', err);
+                    console.error('Ошибка сохранения веса:', err);
+                    showToast('Ошибка сохранения: ' + err.message);
+                });
+        }
+
+        // Сохранение ОБЪЁМОВ в Supabase (measurements - только объёмы)
+        function saveBody() {
+            var bodyData = {
+                user_id: currentUser.id,
+                measurement_date: document.getElementById('bodyDate').value,
+                measurement_time: document.getElementById('bodyTime').value,
+                chest: document.getElementById('chest').value ? parseFloat(document.getElementById('chest').value) : null,
+                waist: document.getElementById('waist').value ? parseFloat(document.getElementById('waist').value) : null,
+                hips: document.getElementById('hips').value ? parseFloat(document.getElementById('hips').value) : null,
+                left_arm: document.getElementById('leftArm').value ? parseFloat(document.getElementById('leftArm').value) : null,
+                right_arm: document.getElementById('rightArm').value ? parseFloat(document.getElementById('rightArm').value) : null,
+                left_thigh: document.getElementById('leftThigh').value ? parseFloat(document.getElementById('leftThigh').value) : null,
+                right_thigh: document.getElementById('rightThigh').value ? parseFloat(document.getElementById('rightThigh').value) : null,
+                notes: document.getElementById('bodyNote') ? document.getElementById('bodyNote').value : null
+            };
+
+            // Проверяем что хотя бы одно поле заполнено
+            var hasData = bodyData.chest || bodyData.waist || bodyData.hips || bodyData.left_arm || bodyData.right_arm || bodyData.left_thigh || bodyData.right_thigh;
+            if (!hasData) {
+                showToast('Заполните хотя бы один объём');
+                return;
+            }
+
+            console.log('Сохраняю объёмы:', bodyData);
+
+            supabase
+                .from('measurements')
+                .insert(bodyData)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('Ошибка сохранения:', result.error);
+                        showToast('Ошибка: ' + result.error.message);
+                        return;
+                    }
+                    console.log('Объёмы сохранены!');
+                    showToast('✓ Объёмы сохранены!');
+                    closeBodyModal();
+                    document.getElementById('bodyForm').reset();
+                    setDefaultDates();
+                    loadWeightData();
+                })
+                .catch(function(err) {
+                    console.error('Ошибка сохранения объёмов:', err);
                     showToast('Ошибка сохранения: ' + err.message);
                 });
         }
@@ -2053,6 +2127,14 @@
             document.getElementById('waterModal').classList.remove('show');
         }
 
+        function showBodyModal() {
+            document.getElementById('bodyModal').classList.add('show');
+        }
+
+        function closeBodyModal() {
+            document.getElementById('bodyModal').classList.remove('show');
+        }
+
         // Закрытие по клику на оверлей
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', function(e) {
@@ -2102,15 +2184,6 @@
             }
         ];
 
-        function rotateRecommendation() {
-            const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-            const index = dayOfYear % curatorRecommendations.length;
-            const rec = curatorRecommendations[index];
-
-            document.getElementById('curatorText').innerHTML = rec.text;
-            document.getElementById('curatorTime').textContent = rec.time + ' · ' + new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-        }
-
         function dismissCurator() {
             const card = document.getElementById('curatorCard');
             card.style.transition = 'all 0.4s ease';
@@ -2119,8 +2192,8 @@
             setTimeout(() => card.style.display = 'none', 400);
         }
 
-        // Инициализация рекомендации при загрузке
-        rotateRecommendation();
+        // При загрузке скрываем рекомендацию куратора (будет загружена из Supabase если есть)
+        document.getElementById('curatorCard').style.display = 'none';
     </script>
 </body>
 </html>
