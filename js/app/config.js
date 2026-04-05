@@ -1,7 +1,7 @@
 // Конфигурация Supabase
 // ЗАМЕНИ эти значения на свои из настроек Supabase!
 
-const SUPABASE_URL = 'https://rrejiqxtlgrjfftomlr.supabase.co';
+const SUPABASE_URL = 'https://rrejiqxtlgrjfltdomlr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_KDP-JnzehDj-juiGf3FZHg_7MzqvYxQ';
 
 // Инициализация клиента Supabase
