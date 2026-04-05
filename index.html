@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Лада Атакова — Нутрициолог</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -203,6 +204,8 @@
         .btn-login:active { box-shadow: inset 4px 4px 8px rgba(163,175,194,0.55), inset -4px -4px 8px rgba(255,255,255,0.7); }
         .error-msg { background: #fed7d7; color: #c53030; padding: 12px 15px; border-radius: 10px; font-size: 14px; margin-bottom: 20px; display: none; }
         .error-msg.show { display: block; }
+        .success-msg { background: #c6f6d5; color: #276749; padding: 12px 15px; border-radius: 10px; font-size: 14px; margin-bottom: 20px; display: none; }
+        .success-msg.show { display: block; }
         .auth-form { display: none; }
         .auth-form.active { display: block; }
         .form-footer { text-align: center; margin-top: 25px; }
@@ -1094,6 +1097,133 @@
 
         // Тост
         function showToast(msg) { var t = document.getElementById('toast'); if (t) { t.textContent = msg; t.classList.add('show'); setTimeout(function() { t.classList.remove('show'); }, 2500); } }
+
+        // ===== АВТОРИЗАЦИЯ =====
+        // Supabase инициализация
+        var SUPABASE_URL = 'https://rrejiqxtlgrjfftomlr.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_KDP-JnzehDj-juiGf3FZHg_7MzqvYxQ';
+        var supabaseClient;
+        
+        try {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('Supabase клиент инициализирован');
+        } catch(err) {
+            console.error('Ошибка Supabase:', err);
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.auth-form').forEach(function(f) { f.classList.remove('active'); });
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Form').classList.add('active');
+            var msgEl = document.getElementById('authMessage');
+            if (msgEl) msgEl.style.display = 'none';
+        }
+
+        function showAuthMessage(msg, isError) {
+            var el = document.getElementById('authMessage');
+            if (!el) return;
+            el.textContent = msg;
+            el.className = isError ? 'error-msg show' : 'success-msg show';
+        }
+
+        // Обработчик входа
+        var loginFormEl = document.getElementById('loginForm');
+        if (loginFormEl) {
+            loginFormEl.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var email = document.getElementById('loginEmail').value;
+                var password = document.getElementById('loginPassword').value;
+                console.log('=== ВХОД ===', email);
+                
+                if (!supabaseClient) {
+                    showAuthMessage('Ошибка подключения к серверу', true);
+                    return;
+                }
+
+                var btn = this.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                btn.textContent = 'Вход...';
+
+                supabaseClient.auth.signInWithPassword({ email: email, password: password })
+                    .then(function(result) {
+                        console.log('Ответ Supabase:', result);
+                        if (result.error) throw result.error;
+                        console.log('Вход успешен, переход в app.html');
+                        window.location.href = 'app.html';
+                    })
+                    .catch(function(err) {
+                        console.error('Ошибка входа:', err);
+                        var msg = err.message || err;
+                        if (msg.includes('Invalid')) {
+                            showAuthMessage('Неверный email или пароль', true);
+                        } else {
+                            showAuthMessage(msg, true);
+                        }
+                        btn.disabled = false;
+                        btn.textContent = 'Войти';
+                    });
+            });
+        }
+
+        // Обработчик регистрации
+        var registerFormEl = document.getElementById('registerForm');
+        if (registerFormEl) {
+            registerFormEl.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('=== РЕГИСТРАЦИЯ ===');
+                
+                var name = document.getElementById('regName') ? document.getElementById('regName').value : '';
+                var email = document.getElementById('regEmail') ? document.getElementById('regEmail').value : '';
+                var phone = document.getElementById('regPhone') ? document.getElementById('regPhone').value : '';
+                var password = document.getElementById('regPassword') ? document.getElementById('regPassword').value : '';
+
+                // Проверка чекбоксов
+                var consentPD = document.getElementById('consentPD');
+                var consentTerms = document.getElementById('consentTerms');
+                
+                if (consentPD && !consentPD.checked) {
+                    showAuthMessage('Необходимо согласие на обработку персональных данных', true);
+                    return;
+                }
+                if (consentTerms && !consentTerms.checked) {
+                    showAuthMessage('Необходимо принять пользовательское соглашение', true);
+                    return;
+                }
+
+                if (!supabaseClient) {
+                    showAuthMessage('Ошибка подключения к серверу', true);
+                    return;
+                }
+
+                var btn = this.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                btn.textContent = 'Регистрация...';
+
+                supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: name,
+                            phone: phone
+                        }
+                    }
+                }).then(function(result) {
+                    console.log('Ответ Supabase:', result);
+                    if (result.error) throw result.error;
+                    showAuthMessage('Регистрация успешна! Переход ко входу...', false);
+                    setTimeout(function() { switchAuthTab('login'); }, 2000);
+                    btn.disabled = false;
+                    btn.textContent = 'Зарегистрироваться';
+                }).catch(function(err) {
+                    console.error('Ошибка регистрации:', err);
+                    showAuthMessage(err.message || err, true);
+                    btn.disabled = false;
+                    btn.textContent = 'Зарегистрироваться';
+                });
+            });
+        }
 
         // ===== ПРИ ЗАГРУЗКЕ =====
         showPage('landing');
