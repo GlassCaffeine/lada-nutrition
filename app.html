@@ -1101,13 +1101,22 @@
                         </div>
                     </div>
 
+                    <!-- График объёмов -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Объёмы тела</h2>
+                            <button class="btn-water" onclick="showBodyModal()">+ Объёмы</button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="bodyChartMain"></canvas>
+                        </div>
+                    </div>
+
                     <!-- График воды -->
                     <div class="card">
                         <div class="card-header">
                             <h2>Потребление воды</h2>
-                            <button class="btn-water" onclick="showWaterModal()">
-                                + Воды за день
-                            </button>
+                            <button class="btn-water" onclick="showWaterModal()">+ Воды за день</button>
                         </div>
                         <div class="chart-container">
                             <canvas id="waterChart"></canvas>
@@ -1246,6 +1255,9 @@
                         <h1>Объёмы тела</h1>
                         <p>Динамика изменений</p>
                     </div>
+                    <button class="btn-result" onclick="showBodyModal()">
+                        + Внести объёмы
+                    </button>
                 </div>
                 <div class="card">
                     <div class="card-header">
@@ -1340,6 +1352,43 @@
                     <input type="number" id="waterAmount" class="form-control" placeholder="250" min="50" step="50" required>
                 </div>
                 <button type="submit" class="btn-save" style="background: #4299e1;">Добавить воду</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ввода объёмов -->
+    <div class="modal-overlay" id="bodyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Внести объёмы</h2>
+                <button class="modal-close" onclick="closeBodyModal()">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <form id="bodyForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bodyDate">Дата</label>
+                        <input type="date" id="bodyDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bodyTime">Время</label>
+                        <input type="time" id="bodyTime" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Объёмы (см)</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="number" id="chest" class="form-control" placeholder="Грудь" step="0.1" min="0">
+                        <input type="number" id="waist" class="form-control" placeholder="Талия" step="0.1" min="0">
+                        <input type="number" id="hips" class="form-control" placeholder="Бёдра" step="0.1" min="0">
+                        <input type="number" id="leftArm" class="form-control" placeholder="Лев. рука" step="0.1" min="0">
+                        <input type="number" id="rightArm" class="form-control" placeholder="Прав. рука" step="0.1" min="0">
+                        <input type="number" id="leftThigh" class="form-control" placeholder="Лев. бедро" step="0.1" min="0">
+                        <input type="number" id="rightThigh" class="form-control" placeholder="Прав. бедро" step="0.1" min="0">
+                    </div>
+                </div>
+                <button type="submit" class="btn-save">Сохранить объёмы</button>
             </form>
         </div>
     </div>
@@ -1533,7 +1582,7 @@
             });
         }
 
-        // График объёмов (добавляем после инициализации основных графиков)
+        // График объёмов (на отдельной странице)
         var bodyChartCtx = document.getElementById('bodyChart');
         if (bodyChartCtx) {
             window.bodyChart = new Chart(bodyChartCtx.getContext('2d'), {
@@ -1551,6 +1600,28 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { position: 'top' } },
                     scales: { y: { beginAtZero: false }, x: { grid: { display: false } } }
+                }
+            });
+        }
+
+        // График объёмов (на главном экране)
+        var bodyChartMainCtx = document.getElementById('bodyChartMain');
+        if (bodyChartMainCtx) {
+            window.bodyChartMain = new Chart(bodyChartMainCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Грудь', data: [], borderColor: '#e53e3e', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
+                        { label: 'Талия', data: [], borderColor: '#38a169', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
+                        { label: 'Бёдра', data: [], borderColor: '#3182ce', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: false }, x: { grid: { display: false }, ticks: { maxTicksLimit: 5 } } }
                 }
             });
         }
@@ -1913,6 +1984,12 @@
                 saveWeight();
             });
 
+            // Форма объёмов
+            document.getElementById('bodyForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveBody();
+            });
+
             // Форма воды
             document.getElementById('waterForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -1988,10 +2065,36 @@
             });
         }
 
+        // Сохранение объёмов (отдельная таблица body_measurements)
+        function saveBody() {
+            var bodyData = {
+                user_id: currentUser.id,
+                measurement_date: document.getElementById('bodyDate').value,
+                measurement_time: document.getElementById('bodyTime').value,
+                chest: document.getElementById('chest').value ? parseFloat(document.getElementById('chest').value) : null,
+                waist: document.getElementById('waist').value ? parseFloat(document.getElementById('waist').value) : null,
+                hips: document.getElementById('hips').value ? parseFloat(document.getElementById('hips').value) : null,
+                left_arm: document.getElementById('leftArm').value ? parseFloat(document.getElementById('leftArm').value) : null,
+                right_arm: document.getElementById('rightArm').value ? parseFloat(document.getElementById('rightArm').value) : null,
+                left_thigh: document.getElementById('leftThigh').value ? parseFloat(document.getElementById('leftThigh').value) : null,
+                right_thigh: document.getElementById('rightThigh').value ? parseFloat(document.getElementById('rightThigh').value) : null
+            };
+            var hasData = bodyData.chest || bodyData.waist || bodyData.hips;
+            if (!hasData) { showToast('Заполните хотя бы один объём'); return; }
+            supabase.from('body_measurements').insert(bodyData).then(function(result) {
+                if (result.error) { showToast('Ошибка: ' + result.error.message); return; }
+                showToast('✓ Объёмы сохранены!');
+                closeBodyModal();
+                document.getElementById('bodyForm').reset();
+                setDefaultDates();
+                loadBodyData();
+            });
+        }
+
         // ===== ЧАТ С КУРАТОРОМ =====
 
         function loadChatMessages() {
-            supabase.from('messages').select('id, content, sender_role, created_at').eq('user_id', currentUser.id).order('created_at', {ascending: true}).limit(50)
+            supabase.from('messages').select('id, content, sender_role, created_at, user_email').eq('user_id', currentUser.id).order('created_at', {ascending: true}).limit(50)
                 .then(function(result) {
                     if (result.data && result.data.length > 0) {
                         var container = document.getElementById('chatMessages');
@@ -1999,8 +2102,10 @@
                         result.data.forEach(function(msg) {
                             var isClient = msg.sender_role === 'client';
                             var time = new Date(msg.created_at).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+                            var email = msg.user_email || '';
                             html += '<div style="display:flex;justify-content:' + (isClient ? 'flex-end' : 'flex-start') + ';margin-bottom:12px;">';
                             html += '<div style="max-width:70%;padding:12px 16px;border-radius:16px;background:' + (isClient ? '#667eea;color:#fff;' : '#e8ecf1;color:#2d3748;') + '">';
+                            if (email && !isClient) html += '<div style="font-size:11px;opacity:0.7;margin-bottom:4px;">' + email + '</div>';
                             html += '<div style="font-size:14px;">' + msg.content + '</div>';
                             html += '<div style="font-size:11px;color:' + (isClient ? 'rgba(255,255,255,0.7)' : '#a0aec0') + ';margin-top:4px;text-align:right;">' + time + '</div>';
                             html += '</div></div>';
@@ -2015,7 +2120,7 @@
             var input = document.getElementById('chatInput');
             var content = input.value.trim();
             if (!content) return;
-            supabase.from('messages').insert({user_id: currentUser.id, content: content, sender_role: 'client', is_read: false})
+            supabase.from('messages').insert({user_id: currentUser.id, user_email: currentUser.email, content: content, sender_role: 'client', is_read: false})
                 .then(function(result) {
                     if (result.error) { showToast('Ошибка: ' + result.error.message); return; }
                     input.value = '';
@@ -2043,22 +2148,43 @@
         }
 
         function loadWeightData() {
-            supabase.from('measurements').select('measurement_date, weight, chest, waist, hips').eq('user_id', currentUser.id).order('measurement_date', {ascending: true})
+            supabase.from('measurements').select('measurement_date, weight').eq('user_id', currentUser.id).order('measurement_date', {ascending: true})
                 .then(function(result) {
                     if (result.data) {
-                        weightData = result.data.map(function(row) {
-                            return { date: row.measurement_date, weight: parseFloat(row.weight), chest: row.chest, waist: row.waist, hips: row.hips };
+                        weightData = result.data.filter(function(row) { return row.weight; }).map(function(row) {
+                            return { date: row.measurement_date, weight: parseFloat(row.weight) };
                         });
                         updateWeightChart(7);
                         updateWeightDetailChart(7);
-                        // Обновляем график объёмов если есть данные
-                        var bodyData = weightData.filter(function(d) { return d.chest || d.waist || d.hips; });
-                        if (bodyData.length > 0 && window.bodyChart) {
-                            window.bodyChart.data.labels = bodyData.map(function(d) { return new Date(d.date).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); });
-                            window.bodyChart.data.datasets[0].data = bodyData.map(function(d) { return d.chest; });
-                            window.bodyChart.data.datasets[1].data = bodyData.map(function(d) { return d.waist; });
-                            window.bodyChart.data.datasets[2].data = bodyData.map(function(d) { return d.hips; });
+                    }
+                });
+        }
+
+        function loadBodyData() {
+            supabase.from('body_measurements').select('measurement_date, chest, waist, hips').eq('user_id', currentUser.id).order('measurement_date', {ascending: true})
+                .then(function(result) {
+                    if (result.data && result.data.length > 0) {
+                        var bodyData = result.data.filter(function(row) { return row.chest || row.waist || row.hips; });
+                        var labels = bodyData.map(function(d) { return new Date(d.measurement_date).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); });
+                        var chest = bodyData.map(function(d) { return d.chest; });
+                        var waist = bodyData.map(function(d) { return d.waist; });
+                        var hips = bodyData.map(function(d) { return d.hips; });
+                        
+                        // Обновляем график на отдельной странице
+                        if (window.bodyChart) {
+                            window.bodyChart.data.labels = labels;
+                            window.bodyChart.data.datasets[0].data = chest;
+                            window.bodyChart.data.datasets[1].data = waist;
+                            window.bodyChart.data.datasets[2].data = hips;
                             window.bodyChart.update();
+                        }
+                        // Обновляем график на главном экране
+                        if (window.bodyChartMain) {
+                            window.bodyChartMain.data.labels = labels;
+                            window.bodyChartMain.data.datasets[0].data = chest;
+                            window.bodyChartMain.data.datasets[1].data = waist;
+                            window.bodyChartMain.data.datasets[2].data = hips;
+                            window.bodyChartMain.update();
                         }
                     }
                 });
@@ -2098,6 +2224,7 @@
                     console.log('Пользователь авторизован:', currentUser.email);
                     loadUserProfile();
                     loadWeightData();
+                    loadBodyData();
                     loadWaterData();
                     loadChatMessages();
                 } else {
