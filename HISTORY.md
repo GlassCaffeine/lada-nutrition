@@ -93,6 +93,12 @@
 - **Действие:** Кнопка "Войти в приложение" теперь ведёт на `app.html`
 - **Статус:** ✅ Завершено
 
+#### Публикация на GitHub
+- **Время:** продолжение
+- **Действие:** Все 19 файлов закоммичены и отправлены на GitHub через GitHub Desktop
+- **Файлы:** index.html, app.html, css/style.css, css/app.css, js/main.js, js/app/*.js, pwa/manifest.json, pwa/sw.js, supabase-schema.sql, PLAN.md, HISTORY.md, README.md, .gitignore
+- **Статус:** ✅ Опубликовано на GitHub
+
 ---
 
 ## Следующие шаги
