@@ -1076,17 +1076,12 @@
                     </div>
                 </div>
 
-                <div class="cards-grid">
+                <div class="cards-grid" style="grid-template-columns: 1fr 1fr 1fr;">
                     <!-- График веса -->
                     <div class="card">
                         <div class="card-header">
                             <h2>Динамика веса</h2>
-                            <div class="chart-tabs">
-                                <button class="chart-tab active" data-period="7">7 дней</button>
-                                <button class="chart-tab" data-period="14">14 дней</button>
-                                <button class="chart-tab" data-period="30">Месяц</button>
-                                <button class="chart-tab" data-period="all">Все</button>
-                            </div>
+                            <button class="btn-water" onclick="showResultModal()" style="font-size:12px;">+ Вес</button>
                         </div>
                         <div class="trend-indicator" id="weightTrend">
                             <span>Тренд:</span>
@@ -1097,13 +1092,22 @@
                         </div>
                     </div>
 
+                    <!-- График объёмов -->
+                    <div class="card" id="bodyCardDash" style="display:none;">
+                        <div class="card-header">
+                            <h2>Объёмы</h2>
+                            <button class="btn-water" onclick="showBodyModal()" style="font-size:12px;">+ Объёмы</button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="bodyChartDash"></canvas>
+                        </div>
+                    </div>
+
                     <!-- График воды -->
                     <div class="card">
                         <div class="card-header">
-                            <h2>Потребление воды</h2>
-                            <button class="btn-water" onclick="showWaterModal()">
-                                + Воды за день
-                            </button>
+                            <h2>Вода сегодня</h2>
+                            <button class="btn-water" onclick="showWaterModal()">+ Вода</button>
                         </div>
                         <div class="chart-container">
                             <canvas id="waterChart"></canvas>
@@ -1337,15 +1341,21 @@
                 </button>
             </div>
             <form id="waterForm">
-                <div class="form-group">
-                    <label for="waterDate">Дата</label>
-                    <input type="date" id="waterDate" class="form-control" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="waterDate">Дата</label>
+                        <input type="date" id="waterDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="waterTime">Время</label>
+                        <input type="time" id="waterTime" class="form-control" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="waterAmount">Количество (мл)</label>
-                    <input type="number" id="waterAmount" class="form-control" placeholder="250" min="0" required>
+                    <input type="number" id="waterAmount" class="form-control" placeholder="250" min="50" max="2000" step="50" required>
                 </div>
-                <button type="submit" class="btn-save" style="background: #4299e1;">Добавить</button>
+                <button type="submit" class="btn-save" style="background: #4299e1;">Добавить воду</button>
             </form>
         </div>
     </div>
@@ -1357,6 +1367,7 @@
         // Данные (в реальном приложении будут храниться в БД)
         let weightData = [];
         let waterData = [];
+        let waterTodayData = []; // Вода за сегодня по времени
         let mealsData = [];
 
         // ===== ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE =====
@@ -1398,7 +1409,7 @@
                     weightData = (result.data || []).map(function(row) {
                         return { 
                             date: row.measurement_date, 
-                            weight: parseFloat(row.weight),
+                            weight: row.weight ? parseFloat(row.weight) : null,
                             chest: row.chest ? parseFloat(row.chest) : null,
                             waist: row.waist ? parseFloat(row.waist) : null,
                             hips: row.hips ? parseFloat(row.hips) : null,
@@ -1408,18 +1419,24 @@
                             right_thigh: row.right_thigh ? parseFloat(row.right_thigh) : null
                         };
                     });
+                    // Убираем записи где нет ни веса ни объёмов
+                    weightData = weightData.filter(function(d) { return d.weight || d.chest || d.waist || d.hips; });
+                    
                     console.log('Загружено записей веса:', weightData.length);
+                    
+                    // Обновляем графики веса
                     updateWeightChart(7);
                     updateWeightDetailChart(7);
                     
-                    // Если есть данные объёмов — покажем карточку и обновим график
+                    // Проверяем есть ли данные объёмов
                     var hasBodyData = weightData.some(function(d) { return d.chest || d.waist || d.hips; });
                     if (hasBodyData) {
                         document.getElementById('bodyCard').style.display = 'block';
-                        initBodyChart();
-                        updateBodyChart(7);
+                        document.getElementById('bodyCardDash').style.display = 'block';
+                        updateBodyChartDash();
                     } else {
                         document.getElementById('bodyCard').style.display = 'none';
+                        document.getElementById('bodyCardDash').style.display = 'none';
                     }
                 })
                 .catch(function(err) {
@@ -1431,27 +1448,42 @@
         function loadWaterData() {
             supabase
                 .from('water_intake')
-                .select('intake_date, amount_ml')
+                .select('intake_date, intake_time, amount_ml')
                 .eq('user_id', currentUser.id)
                 .order('intake_date', { ascending: true })
+                .order('intake_time', { ascending: true })
                 .then(function(result) {
                     if (result.error) {
                         console.error('Ошибка загрузки воды:', result.error);
                         return;
                     }
-                    // Агрегация по дате (SUM)
+                    
+                    // Агрегация по дате (SUM) для исторического графика
                     var aggregated = {};
+                    var today = new Date().toISOString().split('T')[0];
+                    var todayEntries = [];
+                    
                     (result.data || []).forEach(function(row) {
+                        // Для исторического графика
                         if (!aggregated[row.intake_date]) {
                             aggregated[row.intake_date] = 0;
                         }
                         aggregated[row.intake_date] += row.amount_ml;
+                        
+                        // Для графика сегодня
+                        if (row.intake_date === today) {
+                            todayEntries.push({ time: row.intake_time, amount: row.amount_ml });
+                        }
                     });
+                    
                     waterData = Object.keys(aggregated).map(function(date) {
                         return { date: date, amount: aggregated[date] };
                     });
                     waterData.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
-                    console.log('Загружено записей воды:', waterData.length);
+                    
+                    waterTodayData = todayEntries;
+                    
+                    console.log('Загружено записей воды:', waterData.length, '| Сегодня:', waterTodayData.length);
                     updateWaterChart();
                     updateWaterDetailChart();
                 })
@@ -1526,12 +1558,15 @@
         function setDefaultDates() {
             const today = new Date().toISOString().split('T')[0];
             const now = new Date().toTimeString().slice(0, 5);
-            
+
             document.getElementById('mealDate').value = today;
             document.getElementById('mealTime').value = now;
             document.getElementById('weightDate').value = today;
             document.getElementById('weightTime').value = now;
             document.getElementById('waterDate').value = today;
+            document.getElementById('waterTime').value = now;
+            document.getElementById('bodyDate').value = today;
+            document.getElementById('bodyTime').value = now;
         }
 
         // Навигация
@@ -1608,7 +1643,7 @@
         }
 
         // Инициализация графиков
-        let weightChart, waterChart, weightDetailChart, waterDetailChart;
+        let weightChart, waterChart, weightDetailChart, waterDetailChart, bodyChartDash, waterTodayChart;
 
         function initCharts() {
             // График веса на дашборде
@@ -1643,26 +1678,40 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: false,
-                            grid: { color: 'rgba(163, 175, 194, 0.3)' },
-                            ticks: { color: '#718096' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#718096', maxTicksLimit: 7 }
-                        }
+                        y: { beginAtZero: false, grid: { color: 'rgba(163, 175, 194, 0.3)' }, ticks: { color: '#718096' } },
+                        x: { grid: { display: false }, ticks: { color: '#718096', maxTicksLimit: 7 } }
                     }
                 }
             });
 
-            // График воды на дашборде
-            const waterCtx = document.getElementById('waterChart').getContext('2d');
-            waterChart = new Chart(waterCtx, {
+            // График объёмов на дашборде (грудь, талия, бёдра)
+            const bodyCtx = document.getElementById('bodyChartDash').getContext('2d');
+            bodyChartDash = new Chart(bodyCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Грудь', data: [], borderColor: '#e53e3e', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
+                        { label: 'Талия', data: [], borderColor: '#38a169', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
+                        { label: 'Бёдра', data: [], borderColor: '#3182ce', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10 } } } },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: 'rgba(163, 175, 194, 0.3)' }, ticks: { color: '#718096', font: { size: 10 } } },
+                        x: { grid: { display: false }, ticks: { color: '#718096', maxTicksLimit: 7, font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // График воды за сегодня (накопительный)
+            const waterTodayCtx = document.getElementById('waterChart').getContext('2d');
+            waterTodayChart = new Chart(waterTodayCtx, {
                 type: 'bar',
                 data: {
                     labels: [],
@@ -1672,25 +1721,16 @@
                         backgroundColor: 'rgba(66, 153, 225, 0.6)',
                         borderColor: '#4299e1',
                         borderWidth: 2,
-                        borderRadius: 8
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(163, 175, 194, 0.3)' },
-                            ticks: { color: '#718096' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#718096', maxTicksLimit: 7 }
-                        }
+                        y: { beginAtZero: true, grid: { color: 'rgba(163, 175, 194, 0.3)' }, ticks: { color: '#718096' } },
+                        x: { grid: { display: false }, ticks: { color: '#718096', maxTicksLimit: 8 } }
                     }
                 }
             });
@@ -1859,17 +1899,25 @@
             trendEl.innerHTML = `<span>Тренд:</span><span class="${className}">${icon} ${text}</span>`;
         }
 
-        // Обновление графика воды
+        // Обновление графика воды ЗА СЕГОДНЯ (накопительный по времени)
         function updateWaterChart() {
-            const labels = waterData.map(d => {
-                const date = new Date(d.date);
-                return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            // Сортируем по времени
+            var sorted = waterTodayData.slice().sort(function(a, b) { return a.time.localeCompare(b.time); });
+            
+            // Накопительная сумма
+            var cumulative = 0;
+            var labels = [];
+            var values = [];
+            
+            sorted.forEach(function(entry) {
+                cumulative += entry.amount;
+                labels.push(entry.time);
+                values.push(cumulative);
             });
-            const values = waterData.map(d => d.amount);
 
-            waterChart.data.labels = labels;
-            waterChart.data.datasets[0].data = values;
-            waterChart.update();
+            waterTodayChart.data.labels = labels;
+            waterTodayChart.data.datasets[0].data = values;
+            waterTodayChart.update();
         }
 
         // Обновление детального графика веса
@@ -1907,47 +1955,21 @@
             waterDetailChart.update();
         }
 
-        // График объёмов тела
-        let bodyChart;
-
-        function initBodyChart() {
-            var ctx = document.getElementById('bodyChart').getContext('2d');
-            bodyChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        { label: 'Грудь', data: [], borderColor: '#e53e3e', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
-                        { label: 'Талия', data: [], borderColor: '#38a169', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 },
-                        { label: 'Бёдра', data: [], borderColor: '#3182ce', borderWidth: 2, tension: 0.4, fill: false, pointRadius: 3 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' } },
-                    scales: { y: { beginAtZero: false } }
-                }
-            });
-        }
-
-        function updateBodyChart(period) {
-            if (!bodyChart) initBodyChart();
+        // График объёмов на главном экране
+        function updateBodyChartDash() {
+            if (!bodyChartDash) return;
             
-            var filtered = weightData;
-            if (period !== 'all') {
-                var cutoff = new Date();
-                cutoff.setDate(cutoff.getDate() - period);
-                filtered = weightData.filter(function(d) { return new Date(d.date) >= cutoff; });
-            }
+            var filtered = weightData.filter(function(d) { return d.chest || d.waist || d.hips; });
+            // Берём последние 7 записей с объёмами
+            filtered = filtered.slice(-7);
 
-            bodyChart.data.labels = filtered.map(function(d) {
+            bodyChartDash.data.labels = filtered.map(function(d) {
                 return new Date(d.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
             });
-            bodyChart.data.datasets[0].data = filtered.map(function(d) { return d.chest; });
-            bodyChart.data.datasets[1].data = filtered.map(function(d) { return d.waist; });
-            bodyChart.data.datasets[2].data = filtered.map(function(d) { return d.hips; });
-            bodyChart.update();
+            bodyChartDash.data.datasets[0].data = filtered.map(function(d) { return d.chest; });
+            bodyChartDash.data.datasets[1].data = filtered.map(function(d) { return d.waist; });
+            bodyChartDash.data.datasets[2].data = filtered.map(function(d) { return d.hips; });
+            bodyChartDash.update();
         }
 
         // Сохранение приема пищи в Supabase (reports)
@@ -2076,12 +2098,17 @@
         function saveWater() {
             var amount = parseInt(document.getElementById('waterAmount').value);
             var date = document.getElementById('waterDate').value;
-            var now = new Date();
+            var time = document.getElementById('waterTime').value;
+
+            if (!amount || amount < 50) {
+                showToast('Введите количество воды (минимум 50 мл)');
+                return;
+            }
 
             var waterEntry = {
                 user_id: currentUser.id,
                 intake_date: date,
-                intake_time: now.toTimeString().slice(0, 5),
+                intake_time: time,
                 amount_ml: amount
             };
 
@@ -2101,7 +2128,6 @@
                     closeWaterModal();
                     document.getElementById('waterForm').reset();
                     setDefaultDates();
-                    // Перезагружаем данные воды
                     loadWaterData();
                 })
                 .catch(function(err) {
