@@ -253,10 +253,25 @@
   </div>
 
   <script>
+  // Проверка загрузки Supabase
+  if (typeof window.supabase === 'undefined') {
+    console.error('Supabase CDN не загружен!');
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>Ошибка загрузки</h2><p>Supabase не подключён. Проверьте интернет-соединение.</p></div>';
+  } else {
+    console.log('Supabase загружен успешно');
+  }
+  
   // Supabase конфигурация
   var SUPABASE_URL = 'https://rrejiqxtlgrjfftomlr.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_KDP-JnzehDj-juiGf3FZHg_7MzqvYxQ';
-  var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var supabase;
+  
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('Supabase клиент создан');
+  } catch(err) {
+    console.error('Ошибка создания Supabase клиента:', err);
+  }
 
   function switchTab(tab) {
     document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.remove('active'); });
