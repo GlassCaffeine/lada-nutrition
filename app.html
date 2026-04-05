@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Приложение нутрициолога Атаковой Лады">
+    <title>Приложение — Атакова Лада</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="manifest" href="pwa/manifest.json">
+    <link rel="icon" href="assets/icons/favicon.ico" type="image/x-icon">
+</head>
+<body class="app-body">
+
+    <!-- Экран авторизации -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-container">
+            <div class="auth-logo">
+                <span class="logo-icon">🥗</span>
+                <span class="logo-text">Атакова Лада</span>
+            </div>
+
+            <!-- Табы вход / регистрация -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Вход</button>
+                <button class="auth-tab" data-tab="register">Регистрация</button>
+            </div>
+
+            <!-- Форма входа -->
+            <form id="login-form" class="auth-form active">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Пароль" required>
+                <button type="submit" class="btn btn-primary btn-block">Войти</button>
+                <a href="#" id="forgot-password-link" class="forgot-link">Забыли пароль?</a>
+                <div id="login-error" class="error-message"></div>
+            </form>
+
+            <!-- Форма регистрации -->
+            <form id="register-form" class="auth-form">
+                <input type="text" id="register-name" placeholder="ФИО" required>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <input type="tel" id="register-phone" placeholder="Телефон">
+                <input type="password" id="register-password" placeholder="Пароль (мин. 8 символов)" required minlength="8">
+                <input type="password" id="register-password-confirm" placeholder="Подтвердите пароль" required>
+
+                <div class="consent-block">
+                    <label class="consent-label">
+                        <input type="checkbox" id="consent-personal" required>
+                        <span>Даю согласие на <a href="/privacy-policy.html" target="_blank">обработку персональных данных</a> (152-ФЗ)</span>
+                    </label>
+                    <label class="consent-label">
+                        <input type="checkbox" id="consent-processing" required>
+                        <span>Соглашаюсь с <a href="/terms.html" target="_blank">условиями обработки данных</a></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+                <div id="register-error" class="error-message"></div>
+            </form>
+
+            <!-- Форма восстановления пароля -->
+            <form id="reset-form" class="auth-form">
+                <p class="reset-info">Введите email, на который вы зарегистрированы. Мы отправим ссылку для сброса пароля.</p>
+                <input type="email" id="reset-email" placeholder="Email" required>
+                <button type="submit" class="btn btn-primary btn-block">Отправить ссылку</button>
+                <a href="#" id="back-to-login" class="back-link">← Вернуться к входу</a>
+                <div id="reset-message" class="success-message"></div>
+                <div id="reset-error" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Основное приложение (скрыто до авторизации) -->
+    <div id="app-screen" class="app-screen" style="display: none;">
+        <!-- Шапка приложения -->
+        <header class="app-header">
+            <div class="app-header-left">
+                <span class="logo-icon">🥗</span>
+                <span class="app-title">Питание</span>
+            </div>
+            <div class="app-header-right">
+                <span id="user-name" class="user-greeting"></span>
+                <button id="logout-btn" class="btn-logout" title="Выйти">⬅️</button>
+            </div>
+        </header>
+
+        <!-- Контент приложения -->
+        <main class="app-content">
+            <!-- Главная -->
+            <section id="tab-home" class="app-tab active">
+                <h2>Добро пожаловать!</h2>
+                <div class="dashboard-grid">
+                    <div class="dash-card" data-action="reports">
+                        <div class="dash-icon">🍽️</div>
+                        <h3>Отчёты о питании</h3>
+                        <p>Записывайте приёмы пищи</p>
+                    </div>
+                    <div class="dash-card" data-action="measurements">
+                        <div class="dash-icon">📏</div>
+                        <h3>Замеры</h3>
+                        <p>Вес и объёмы тела</p>
+                    </div>
+                    <div class="dash-card" data-action="water">
+                        <div class="dash-icon">💧</div>
+                        <h3>Вода</h3>
+                        <p>Трекер потребления воды</p>
+                    </div>
+                    <div class="dash-card" data-action="chat">
+                        <div class="dash-icon">💬</div>
+                        <h3>Чат с куратором</h3>
+                        <p>Обратная связь</p>
+                    </div>
+                    <div class="dash-card" data-action="recommendations">
+                        <div class="dash-icon">📋</div>
+                        <h3>Рекомендации</h3>
+                        <p>Советы от куратора</p>
+                    </div>
+                    <div class="dash-card" data-action="profile">
+                        <div class="dash-icon">⚙️</div>
+                        <h3>Профиль</h3>
+                        <p>Настройки</p>
+                    </div>
+                </div>
+
+                <!-- Краткая сводка -->
+                <div class="summary-section">
+                    <h3>Сегодня</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-value" id="today-water">0</span>
+                            <span class="summary-label">мл воды</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value" id="today-reports">0</span>
+                            <span class="summary-label">отчётов</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Отчёты о питании -->
+            <section id="tab-reports" class="app-tab">
+                <div class="tab-header">
+                    <button class="btn-back" data-back="home">← Назад</button>
+                    <h2>Отчёты о питании</h2>
+                    <button id="add-report-btn" class="btn-add">+</button>
+                </div>
+                <div id="reports-list" class="reports-list">
+                    <p class="empty-state">Нет отчётов. Нажмите + чтобы добавить.</p>
+                </div>
+            </section>
+
+            <!-- Замеры -->
+            <section id="tab-measurements" class="app-tab">
+                <div class="tab-header">
+                    <button class="btn-back" data-back="home">← Назад</button>
+                    <h2>Замеры тела</h2>
+                    <button id="add-measurement-btn" class="btn-add">+</button>
+                </div>
+                <div class="measurements-content">
+                    <div class="chart-container">
+                        <h3>График веса</h3>
+                        <canvas id="weight-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>График объёмов</h3>
+                        <canvas id="measurements-chart"></canvas>
+                    </div>
+                </div>
+                <div id="measurements-list" class="measurements-list"></div>
+            </section>
+
+            <!-- Вода -->
+            <section id="tab-water" class="app-tab">
+                <div class="tab-header">
+                    <button class="btn-back" data-back="home">← Назад</button>
+                    <h2>Трекер воды</h2>
+                </div>
+                <div class="water-tracker">
+                    <div class="water-progress">
+                        <div class="water-circle">
+                            <span id="water-amount">0</span>
+                            <span class="water-unit">мл</span>
+                        </div>
+                        <div class="water-goal">
+                            <span>Цель: 2000 мл</span>
+                        </div>
+                    </div>
+                    <div class="water-buttons">
+                        <button class="btn-water" data-amount="250">🥤 250 мл</button>
+                        <button class="btn-water" data-amount="500">🍶 500 мл</button>
+                        <button class="btn-water" data-amount="custom">✏️ Своё кол-во</button>
+                    </div>
+                    <div class="chart-container">
+                        <h3>График потребления воды</h3>
+                        <canvas id="water-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Чат с куратором -->
+            <section id="tab-chat" class="app-tab">
+                <div class="tab-header">
+                    <button class="btn-back" data-back="home">← Назад</button>
+                    <h2>Чат с куратором</h2>
+                </div>
+                <div class="chat-container">
+                    <div id="chat-messages" class="chat-messages">
+                        <p class="empty-state">Начните диалог с куратором</p>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="Введите сообщение...">
+                        <button id="chat-send-btn" class="btn-send">➤</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Рекомендации -->
+            <section id="tab-recommendations" class="app-tab">
+                <div class="tab-header">
+                    <button class="btn-back" data-back="home">← Назад</button>
+                    <h2>Рекомендации</h2>
+                </div>
+                <div id="recommendations-list" class="recommendations-list">
+                    <p class="empty-state">Пока нет рекомендаций</p>
+                </div>
+            </section>
+
+            <!-- Профиль -->
+            <section id="tab-profile" class="app-tab">
+                <div class="tab-header">
+                    <button class="btn-back" data-back="home">← Назад</button>
+                    <h2>Профиль</h2>
+                </div>
+                <div class="profile-content">
+                    <div class="profile-info">
+                        <h3 id="profile-name"></h3>
+                        <p id="profile-email"></p>
+                        <p id="profile-phone"></p>
+                        <div class="subscription-badge" id="subscription-status">
+                            Бесплатный тариф
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <button id="edit-profile-btn" class="btn btn-outline">Редактировать профиль</button>
+                        <button id="logout-btn-profile" class="btn btn-danger">Выйти</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Нижняя навигация -->
+        <nav class="app-nav">
+            <button class="nav-item active" data-tab="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Главная</span>
+            </button>
+            <button class="nav-item" data-tab="reports">
+                <span class="nav-icon">🍽️</span>
+                <span class="nav-label">Отчёты</span>
+            </button>
+            <button class="nav-item" data-tab="water">
+                <span class="nav-icon">💧</span>
+                <span class="nav-label">Вода</span>
+            </button>
+            <button class="nav-item" data-tab="chat">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Чат</span>
+            </button>
+            <button class="nav-item" data-tab="profile">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Профиль</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Модальное окно: новый отчёт -->
+    <div id="report-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Новый отчёт о питании</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="report-form">
+                <div class="form-group">
+                    <label>Дата и время</label>
+                    <input type="datetime-local" id="report-datetime" required>
+                </div>
+                <div class="form-group">
+                    <label>Тип приёма пищи</label>
+                    <select id="report-meal-type" required>
+                        <option value="breakfast">Завтрак</option>
+                        <option value="lunch">Обед</option>
+                        <option value="snack">Полдник</option>
+                        <option value="dinner">Ужин</option>
+                        <option value="unplanned">Внеплановое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Описание (что съели)</label>
+                    <textarea id="report-description" rows="3" required placeholder="Опишите ваш приём пищи..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Фото еды</label>
+                    <input type="file" id="report-photo" accept="image/*" capture="environment">
+                </div>
+                <div class="form-group">
+                    <label>Комментарий</label>
+                    <textarea id="report-comment" rows="2" placeholder="Дополнительные заметки..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Сохранить отчёт</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: новый замер -->
+    <div id="measurement-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Новый замер</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="measurement-form">
+                <div class="form-group">
+                    <label>Дата и время</label>
+                    <input type="datetime-local" id="measurement-datetime" required>
+                </div>
+                <div class="form-group">
+                    <label>Вес (кг)</label>
+                    <input type="number" id="measurement-weight" step="0.1" placeholder="65.5">
+                </div>
+                <div class="form-group">
+                    <label>Объём груди (см)</label>
+                    <input type="number" id="measurement-chest" step="0.1" placeholder="90">
+                </div>
+                <div class="form-group">
+                    <label>Объём талии (см)</label>
+                    <input type="number" id="measurement-waist" step="0.1" placeholder="70">
+                </div>
+                <div class="form-group">
+                    <label>Объём бёдер (см)</label>
+                    <input type="number" id="measurement-hips" step="0.1" placeholder="95">
+                </div>
+                <div class="form-group">
+                    <label>Заметки</label>
+                    <textarea id="measurement-notes" rows="2" placeholder="Дополнительные заметки..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Сохранить замер</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: кастомное количество воды -->
+    <div id="water-custom-modal" class="modal" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Количество воды</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="water-custom-form">
+                <div class="form-group">
+                    <input type="number" id="water-custom-amount" placeholder="мл" min="50" max="5000" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Добавить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="js/app/config.js"></script>
+    <script src="js/app/auth.js"></script>
+    <script src="js/app/reports.js"></script>
+    <script src="js/app/measurements.js"></script>
+    <script src="js/app/water.js"></script>
+    <script src="js/app/chat.js"></script>
+    <script src="js/app/app.js"></script>
+</body>
+</html>

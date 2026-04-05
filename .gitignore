@@ -1,0 +1,33 @@
+# Файлы и папки для игнорирования
+
+# Редакторы
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ОС
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Временные файлы
+*.tmp
+*.temp
+*.log
+npm-debug.log*
+
+# Node modules (если будут использоваться)
+node_modules/
+
+# Секреты и ключи
+.env
+.env.local
+.env.*.local
+*.key
+supabase-keys.json
+
+# Локальные данные
+local-data/
+offline-queue/
