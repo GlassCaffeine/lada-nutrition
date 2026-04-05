@@ -1254,6 +1254,16 @@
                         <canvas id="bodyChart"></canvas>
                     </div>
                 </div>
+
+                <!-- Записи веса -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Последние записи веса</h2>
+                    </div>
+                    <div id="weightRecordsList" style="padding: 15px;">
+                        <p style="text-align:center;color:#a0aec0;">Пока нет записей</p>
+                    </div>
+                </div>
             </section>
 
             <!-- Секция Объёмы -->
@@ -1284,6 +1294,16 @@
                         <canvas id="bodySectionChart"></canvas>
                     </div>
                 </div>
+
+                <!-- Записи объёмов -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Последние записи объёмов</h2>
+                    </div>
+                    <div id="bodyRecordsList" style="padding: 15px;">
+                        <p style="text-align:center;color:#a0aec0;">Пока нет записей</p>
+                    </div>
+                </div>
             </section>
 
             <!-- Секция Вода -->
@@ -1304,6 +1324,17 @@
                     </div>
                     <div class="chart-container" style="height: 350px;">
                         <canvas id="waterDetailChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Записи воды за сегодня -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Записи за сегодня</h2>
+                        <span id="waterTotalToday" style="color:#4299e1;font-weight:600;">0 мл</span>
+                    </div>
+                    <div id="waterRecordsList" style="padding: 15px;">
+                        <p style="text-align:center;color:#a0aec0;">Пока нет записей за сегодня</p>
                     </div>
                 </div>
             </section>
@@ -1503,6 +1534,10 @@
                     updateWeightDetailChart(7);
                     updateBodyChartDash();
                     updateBodySectionChart(7);
+                    
+                    // Отображаем записи
+                    renderWeightRecords();
+                    renderBodyRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка загрузки веса:', err);
@@ -1551,6 +1586,7 @@
                     console.log('Загружено записей воды:', waterData.length, '| Сегодня:', waterTodayData.length);
                     updateWaterChart();
                     updateWaterDetailChart();
+                    renderWaterRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка загрузки воды:', err);
@@ -2105,6 +2141,87 @@
             bodyChartDash.update();
         }
 
+        // ===== ОТОБРАЖЕНИЕ ЗАПИСЕЙ =====
+        
+        // Отображение записей веса
+        function renderWeightRecords() {
+            var container = document.getElementById('weightRecordsList');
+            if (!container) return;
+            
+            var filtered = weightData.filter(function(d) { return d.weight; }).slice(-10).reverse();
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#a0aec0;">Пока нет записей</p>';
+                return;
+            }
+            
+            var html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+            filtered.forEach(function(record) {
+                var dateStr = new Date(record.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:#e8ecf1;border-radius:10px;box-shadow:inset 3px 3px 6px rgba(163,175,194,0.3),inset -3px -3px 6px rgba(255,255,255,0.6);">';
+                html += '<span style="color:#718096;font-size:14px;">' + dateStr + '</span>';
+                html += '<span style="color:#667eea;font-weight:700;font-size:18px;">' + record.weight + ' кг</span>';
+                html += '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Отображение записей объёмов
+        function renderBodyRecords() {
+            var container = document.getElementById('bodyRecordsList');
+            if (!container) return;
+            
+            var filtered = weightData.filter(function(d) { return d.chest || d.waist || d.hips; }).slice(-10).reverse();
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#a0aec0;">Пока нет записей</p>';
+                return;
+            }
+            
+            var html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+            filtered.forEach(function(record) {
+                var dateStr = new Date(record.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                html += '<div style="padding:12px 15px;background:#e8ecf1;border-radius:10px;box-shadow:inset 3px 3px 6px rgba(163,175,194,0.3),inset -3px -3px 6px rgba(255,255,255,0.6);">';
+                html += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#718096;font-size:14px;">' + dateStr + '</span></div>';
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:13px;">';
+                if (record.chest) html += '<span style="color:#e53e3e;">Грудь: ' + record.chest + ' см</span>';
+                if (record.waist) html += '<span style="color:#38a169;">Талия: ' + record.waist + ' см</span>';
+                if (record.hips) html += '<span style="color:#3182ce;">Бёдра: ' + record.hips + ' см</span>';
+                html += '</div></div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Отображение записей воды за сегодня
+        function renderWaterRecords() {
+            var container = document.getElementById('waterRecordsList');
+            var totalEl = document.getElementById('waterTotalToday');
+            if (!container) return;
+            
+            if (waterTodayData.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#a0aec0;">Пока нет записей за сегодня</p>';
+                if (totalEl) totalEl.textContent = '0 мл';
+                return;
+            }
+            
+            var total = waterTodayData.reduce(function(sum, entry) { return sum + entry.amount; }, 0);
+            if (totalEl) totalEl.textContent = total + ' мл';
+            
+            var sorted = waterTodayData.slice().sort(function(a, b) { return b.time.localeCompare(a.time); });
+            
+            var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+            sorted.forEach(function(entry) {
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:#e8ecf1;border-radius:10px;box-shadow:inset 3px 3px 6px rgba(163,175,194,0.3),inset -3px -3px 6px rgba(255,255,255,0.6);">';
+                html += '<span style="color:#718096;font-size:14px;">🕐 ' + entry.time + '</span>';
+                html += '<span style="color:#4299e1;font-weight:600;">+' + entry.amount + ' мл</span>';
+                html += '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
         // Сохранение приема пищи в Supabase (reports)
         function saveMeal() {
             var reportData = {
@@ -2173,6 +2290,7 @@
                     document.getElementById('weightForm').reset();
                     setDefaultDates();
                     loadWeightData();
+                    renderWeightRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка сохранения веса:', err);
@@ -2220,6 +2338,7 @@
                     document.getElementById('bodyForm').reset();
                     setDefaultDates();
                     loadWeightData();
+                    renderBodyRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка сохранения объёмов:', err);
@@ -2262,6 +2381,7 @@
                     document.getElementById('waterForm').reset();
                     setDefaultDates();
                     loadWaterData();
+                    renderWaterRecords();
                 })
                 .catch(function(err) {
                     console.error('Ошибка сохранения воды:', err);
