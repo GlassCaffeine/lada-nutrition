@@ -1305,13 +1305,140 @@
         let waterData = [];
         let mealsData = [];
 
-        // Инициализация
+        // ===== ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE =====
+        
+        // Загрузка профиля пользователя
+        function loadUserProfile() {
+            supabase
+                .from('profiles')
+                .select('full_name, email, phone, role, subscription_status, subscription_plan')
+                .eq('id', currentUser.id)
+                .single()
+                .then(function(result) {
+                    if (result.error || !result.data) {
+                        console.error('Профиль не найден:', result.error);
+                        return;
+                    }
+                    var profile = result.data;
+                    document.querySelector('.avatar-section h3').textContent = profile.full_name || 'Пользователь';
+                    document.querySelector('.avatar-section p').textContent = profile.email || '';
+                    console.log('Профиль загружен:', profile.full_name);
+                })
+                .catch(function(err) {
+                    console.error('Ошибка загрузки профиля:', err);
+                });
+        }
+
+        // Загрузка данных веса из measurements
+        function loadWeightData() {
+            supabase
+                .from('measurements')
+                .select('measurement_date, weight')
+                .eq('user_id', currentUser.id)
+                .order('measurement_date', { ascending: true })
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('Ошибка загрузки веса:', result.error);
+                        return;
+                    }
+                    weightData = (result.data || []).map(function(row) {
+                        return { date: row.measurement_date, weight: parseFloat(row.weight) };
+                    });
+                    console.log('Загружено записей веса:', weightData.length);
+                    updateWeightChart(7);
+                    updateWeightDetailChart(7);
+                })
+                .catch(function(err) {
+                    console.error('Ошибка загрузки веса:', err);
+                });
+        }
+
+        // Загрузка данных воды из water_intake
+        function loadWaterData() {
+            supabase
+                .from('water_intake')
+                .select('intake_date, amount_ml')
+                .eq('user_id', currentUser.id)
+                .order('intake_date', { ascending: true })
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('Ошибка загрузки воды:', result.error);
+                        return;
+                    }
+                    // Агрегация по дате (SUM)
+                    var aggregated = {};
+                    (result.data || []).forEach(function(row) {
+                        if (!aggregated[row.intake_date]) {
+                            aggregated[row.intake_date] = 0;
+                        }
+                        aggregated[row.intake_date] += row.amount_ml;
+                    });
+                    waterData = Object.keys(aggregated).map(function(date) {
+                        return { date: date, amount: aggregated[date] };
+                    });
+                    waterData.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+                    console.log('Загружено записей воды:', waterData.length);
+                    updateWaterChart();
+                    updateWaterDetailChart();
+                })
+                .catch(function(err) {
+                    console.error('Ошибка загрузки воды:', err);
+                });
+        }
+
+        // Загрузка рекомендаций куратора
+        function loadRecommendations() {
+            supabase
+                .from('recommendations')
+                .select('id, title, content, is_read, created_at')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false })
+                .limit(5)
+                .then(function(result) {
+                    if (result.error || !result.data || result.data.length === 0) {
+                        // Fallback на хардкод если нет рекомендаций
+                        console.log('Нет рекомендаций из базы, использую хардкод');
+                        rotateRecommendation();
+                        return;
+                    }
+                    // Показываем последнюю рекомендацию
+                    var rec = result.data[0];
+                    document.getElementById('curatorText').innerHTML = rec.content;
+                    var titleText = rec.title || 'Рекомендация куратора';
+                    var dateStr = new Date(rec.created_at).toLocaleDateString('ru-RU', {
+                        day: 'numeric', month: 'long'
+                    });
+                    document.getElementById('curatorTime').textContent = titleText + ' — ' + dateStr;
+
+                    // Отмечаем как прочитанное
+                    if (!rec.is_read) {
+                        supabase
+                            .from('recommendations')
+                            .update({ is_read: true })
+                            .eq('id', rec.id);
+                    }
+                    console.log('Рекомендация загружена:', rec.title);
+                })
+                .catch(function(err) {
+                    console.error('Ошибка загрузки рекомендаций:', err);
+                    rotateRecommendation();
+                });
+        }
+
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
         document.addEventListener('DOMContentLoaded', function() {
             setCurrentDate();
             setDefaultDates();
             initCharts();
-            generateDemoData();
             setupEventListeners();
+            
+            // Загружаем данные из Supabase
+            if (currentUser) {
+                loadUserProfile();
+                loadWeightData();
+                loadWaterData();
+                loadRecommendations();
+            }
         });
 
         // Установка текущей даты
@@ -1566,37 +1693,10 @@
             });
         }
 
-        // Генерация демо-данных
-        function generateDemoData() {
-            const today = new Date();
-            
-            // Генерация данных о весе за 30 дней
-            let baseWeight = 75;
-            for (let i = 29; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                baseWeight += (Math.random() - 0.5) * 0.5;
-                weightData.push({
-                    date: date.toISOString().split('T')[0],
-                    weight: parseFloat(baseWeight.toFixed(2))
-                });
-            }
-
-            // Генерация данных о воде за 7 дней
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                waterData.push({
-                    date: date.toISOString().split('T')[0],
-                    amount: Math.floor(1500 + Math.random() * 1500)
-                });
-            }
-
-            updateWeightChart(7);
-            updateWaterChart();
-            updateWeightDetailChart(7);
-            updateWaterDetailChart();
-        }
+        // ===== ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE =====
+        // generateDemoData() УДАЛЕНА — данные теперь загружаются из Supabase
+        // Функции loadWeightData(), loadWaterData(), loadUserProfile(), loadRecommendations()
+        // вызываются в DOMContentLoaded
 
         // Обновление графика веса
         function updateWeightChart(period) {
@@ -1716,66 +1816,116 @@
             waterDetailChart.update();
         }
 
-        // Сохранение приема пищи
+        // Сохранение приема пищи в Supabase (reports)
         function saveMeal() {
-            const meal = {
-                date: document.getElementById('mealDate').value,
-                time: document.getElementById('mealTime').value,
-                type: document.getElementById('mealType').value,
+            var reportData = {
+                user_id: currentUser.id,
+                report_date: document.getElementById('mealDate').value,
+                report_time: document.getElementById('mealTime').value,
+                meal_type: document.getElementById('mealType').value,
                 description: document.getElementById('mealDescription').value,
-                note: document.getElementById('mealNote').value
+                comment: document.getElementById('mealNote').value || null,
+                photo_url: null
             };
 
-            mealsData.push(meal);
-            showToast('✓ Прием пищи сохранен!');
-            document.getElementById('mealForm').reset();
-            document.getElementById('photoPreview').style.display = 'none';
-            setDefaultDates();
+            console.log('Сохраняю приём пищи:', reportData);
+
+            supabase
+                .from('reports')
+                .insert(reportData)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('Ошибка сохранения:', result.error);
+                        showToast('Ошибка: ' + result.error.message);
+                        return;
+                    }
+                    console.log('Приём пищи сохранён!');
+                    showToast('✓ Прием пищи сохранен!');
+                    document.getElementById('mealForm').reset();
+                    document.getElementById('photoPreview').style.display = 'none';
+                    setDefaultDates();
+                })
+                .catch(function(err) {
+                    console.error('Ошибка сохранения приёма пищи:', err);
+                    showToast('Ошибка сохранения: ' + err.message);
+                });
         }
 
-        // Сохранение веса
+        // Сохранение веса в Supabase (measurements)
         function saveWeight() {
-            const kg = parseInt(document.getElementById('weightKg').value) || 0;
-            const g = parseInt(document.getElementById('weightG').value) || 0;
-            const weight = kg + g / 1000;
+            var kg = parseInt(document.getElementById('weightKg').value) || 0;
+            var g = parseInt(document.getElementById('weightG').value) || 0;
+            var weight = kg + g / 1000;
 
-            const weightEntry = {
-                date: document.getElementById('weightDate').value,
-                weight: parseFloat(weight.toFixed(2))
+            var measurementData = {
+                user_id: currentUser.id,
+                measurement_date: document.getElementById('weightDate').value,
+                measurement_time: document.getElementById('weightTime').value,
+                weight: parseFloat(weight.toFixed(2)),
+                notes: document.getElementById('weightNote') ? document.getElementById('weightNote').value : null
             };
 
-            weightData.push(weightEntry);
-            weightData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            console.log('Сохраняю вес:', measurementData);
 
-            updateWeightChart(7);
-            updateWeightDetailChart(7);
-            showToast('✓ Вес сохранен!');
-            closeResultModal();
-            document.getElementById('weightForm').reset();
-            setDefaultDates();
+            supabase
+                .from('measurements')
+                .insert(measurementData)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('Ошибка сохранения:', result.error);
+                        showToast('Ошибка: ' + result.error.message);
+                        return;
+                    }
+                    console.log('Вес сохранён!');
+                    showToast('✓ Вес сохранен!');
+                    closeResultModal();
+                    document.getElementById('weightForm').reset();
+                    setDefaultDates();
+                    // Перезагружаем данные веса
+                    loadWeightData();
+                })
+                .catch(function(err) {
+                    console.error('Ошибка сохранения веса:', err);
+                    showToast('Ошибка сохранения: ' + err.message);
+                });
         }
 
-        // Сохранение воды
+        // Сохранение воды в Supabase (water_intake)
         function saveWater() {
-            const amount = parseInt(document.getElementById('waterAmount').value);
-            const date = document.getElementById('waterDate').value;
+            var amount = parseInt(document.getElementById('waterAmount').value);
+            var date = document.getElementById('waterDate').value;
+            var now = new Date();
 
-            // Ищем запись за эту дату
-            const existingIndex = waterData.findIndex(d => d.date === date);
-            if (existingIndex >= 0) {
-                waterData[existingIndex].amount += amount;
-            } else {
-                waterData.push({ date, amount });
-            }
+            var waterEntry = {
+                user_id: currentUser.id,
+                intake_date: date,
+                intake_time: now.toTimeString().slice(0, 5),
+                amount_ml: amount
+            };
 
-            waterData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            console.log('Сохраняю воду:', waterEntry);
 
-            updateWaterChart();
-            updateWaterDetailChart();
-            showToast('✓ Вода добавлена!');
-            closeWaterModal();
-            document.getElementById('waterForm').reset();
-            setDefaultDates();
+            supabase
+                .from('water_intake')
+                .insert(waterEntry)
+                .then(function(result) {
+                    if (result.error) {
+                        console.error('Ошибка сохранения:', result.error);
+                        showToast('Ошибка: ' + result.error.message);
+                        return;
+                    }
+                    console.log('Вода сохранена!');
+                    showToast('✓ Вода добавлена!');
+                    closeWaterModal();
+                    document.getElementById('waterForm').reset();
+                    setDefaultDates();
+                    // Перезагружаем данные воды
+                    loadWaterData();
+                })
+                .catch(function(err) {
+                    console.error('Ошибка сохранения воды:', err);
+                    showToast('Ошибка сохранения: ' + err.message);
+                });
         }
 
         // Модальные окна
