@@ -313,19 +313,22 @@
         }
         /* ===== МОБИЛЬНАЯ АДАПТАЦИЯ ===== */
         @media (max-width: 768px) {
+            /* Скрываем боковую панель за экран */
             .sidebar, .app-sidebar { 
                 position: fixed;
                 top: 0;
-                left: -250px;
-                width: 250px;
+                left: -280px;
+                width: 260px;
                 height: 100vh;
                 z-index: 1000;
                 transition: left 0.3s ease;
-                box-shadow: 5px 0 30px rgba(0,0,0,0.3);
+                box-shadow: none;
             }
             .sidebar.open, .app-sidebar.open {
                 left: 0;
+                box-shadow: 5px 0 30px rgba(0,0,0,0.3);
             }
+            /* Overlay для закрытия меню */
             .sidebar-overlay {
                 display: none;
                 position: fixed;
@@ -339,32 +342,70 @@
             .sidebar-overlay.show {
                 display: block;
             }
+            /* На мобильном показываем текст в меню */
             .avatar-section h3, .avatar-section p, .nav-link span { display: block; }
             .nav-link { justify-content: flex-start; padding: 12px 15px; }
             .nav-link svg { margin-right: 10px; }
-            .main-content { margin-left: 0; padding: 20px 15px; }
-            .app-main { margin-left: 0; padding: 20px 15px; }
-            .hero-text h1 { font-size: 26px; }
-            .hero-photo { width: 200px; height: 200px; min-width: 200px; }
-            .counters-row { grid-template-columns: repeat(2, 1fr); }
-            .cards-grid { grid-template-columns: 1fr; }
-            .certs-grid { grid-template-columns: 1fr; max-width: 100%; margin: 15px auto 0; }
-            .cert-placeholder { height: 140px; }
-            .btn-group { flex-direction: column; align-items: center; }
-            .btn { width: 100%; max-width: 280px; justify-content: center; }
-            .curator-card { flex-direction: column; text-align: center; }
-            .curator-header { flex-direction: column; gap: 6px; }
-            .app-header { flex-direction: column; gap: 15px; align-items: flex-start; }
-            .form-row { grid-template-columns: 1fr; }
-            .auth-card { padding: 35px 25px; }
-            .reviews-grid { grid-template-columns: 1fr; }
             
-            /* Мобильная шапка с бургером */
+            /* Убираем отступ у контента */
+            .main-content { margin-left: 0; padding: 15px; }
+            .app-main { margin-left: 0; padding: 15px; }
+            
+            /* Hero секция */
+            .hero-section { flex-direction: column; text-align: center; padding: 20px 15px; gap: 20px; }
+            .hero-text h1 { font-size: 24px; line-height: 1.3; }
+            .hero-text p { font-size: 14px; }
+            .hero-photo { width: 160px; height: 160px; min-width: 160px; }
+            .hero-stats { justify-content: center; flex-wrap: wrap; gap: 10px; }
+            .hero-stat-number { font-size: 22px; }
+            .hero-stat-label { font-size: 11px; }
+            
+            /* Счётчики */
+            .counters-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .counter-box { padding: 15px 10px; }
+            .counter-value { font-size: 28px; }
+            .counter-label { font-size: 11px; }
+            
+            /* Карточки */
+            .cards-grid { grid-template-columns: 1fr; gap: 15px; }
+            .card { padding: 20px 15px; }
+            
+            /* Сертификаты */
+            .certs-grid { grid-template-columns: 1fr 1fr; gap: 10px; max-width: 100%; margin: 15px auto 0; }
+            .cert-placeholder { height: 120px; font-size: 11px; }
+            
+            /* Кнопки */
+            .btn-group { flex-direction: column; align-items: stretch; gap: 10px; }
+            .btn { width: 100%; justify-content: center; max-width: 100%; }
+            
+            /* Карточка куратора */
+            .curator-card { flex-direction: column; text-align: center; padding: 20px 15px; }
+            .curator-header { flex-direction: column; gap: 6px; }
+            
+            /* Формы */
+            .form-row { grid-template-columns: 1fr; gap: 10px; }
+            
+            /* Авторизация */
+            .auth-card { padding: 25px 15px; }
+            
+            /* Отзывы */
+            .reviews-grid { grid-template-columns: 1fr; gap: 15px; }
+            
+            /* О нас, Метод, Марафон */
+            .about-grid { grid-template-columns: 1fr; }
+            .about-text-card { grid-column: 1 / -1; }
+            .method-grid { grid-template-columns: 1fr; }
+            .method-steps-card, .method-problems-card { grid-column: 1 / -1; }
+            .marathon-grid { grid-template-columns: 1fr; }
+            .marathon-benefits-card, .marathon-app-card { grid-column: 1 / -1; }
+            .app-features-grid { grid-template-columns: 1fr; }
+            
+            /* Мобильная шапка */
             .mobile-header {
                 display: flex !important;
                 align-items: center;
                 justify-content: space-between;
-                padding: 15px 20px;
+                padding: 12px 15px;
                 background: #e8ecf1;
                 box-shadow: 0 2px 10px rgba(163,175,194,0.3);
                 position: sticky;
@@ -395,10 +436,27 @@
             }
             .mobile-title {
                 font-family: 'Playfair Display', serif;
-                font-size: 18px;
+                font-size: 16px;
                 color: #2d3748;
                 font-weight: 600;
             }
+            
+            /* Секции */
+            .section-title { font-size: 22px; }
+            .section-subtitle { font-size: 13px; }
+            .section-label { font-size: 10px; }
+            .page-cta { padding: 20px 15px; }
+            .page-cta h3 { font-size: 18px; }
+            
+            /* Решение и проблемы */
+            .solution-item { padding: 12px; gap: 10px; }
+            .solution-check { width: 26px; height: 26px; min-width: 26px; }
+            .problem-card { padding: 12px; gap: 10px; }
+            .problem-icon { width: 32px; height: 32px; min-width: 32px; font-size: 14px; }
+            
+            /* Приложение фичи */
+            .app-feature-card { padding: 12px; gap: 10px; }
+            .app-feature-icon { width: 36px; height: 36px; min-width: 36px; font-size: 16px; }
         }
         
         /* Мобильная шапка скрыта на десктопе */
@@ -407,30 +465,31 @@
         }
         
         @media (max-width: 480px) {
-            .sidebar, .app-sidebar { width: 220px; left: -220px; }
-            .main-content { margin-left: 0; padding: 15px 10px; }
-            .app-main { margin-left: 0; padding: 15px 10px; }
-            .hero-section { padding: 25px 15px; flex-direction: column; text-align: center; }
-            .hero-text h1 { font-size: 22px; }
-            .hero-photo { width: 150px; height: 150px; min-width: 150px; }
-            .hero-stat-number { font-size: 28px; }
-            .hero-stats { justify-content: center; flex-wrap: wrap; gap: 15px; }
-            .cta-card { padding: 25px 15px; }
-            .cta-card h2 { font-size: 22px; }
-            .card { padding: 18px; }
-            .counter-value { font-size: 36px; }
-            .cert-placeholder { height: 120px; font-size: 12px; }
-            .section-title { font-size: 22px; }
-            .solution-item { padding: 12px; gap: 12px; }
-            .solution-check { width: 26px; height: 26px; min-width: 26px; }
-            .problem-card { padding: 15px; gap: 12px; }
-            .problem-icon { width: 36px; height: 36px; min-width: 36px; }
-            .app-feature-card { padding: 15px; gap: 12px; }
-            .app-feature-icon { width: 40px; height: 40px; min-width: 40px; }
-            .app-features-grid { grid-template-columns: 1fr; }
-            .page-cta { padding: 20px 15px; }
-            .page-cta h3 { font-size: 16px; }
-            .counters-row { grid-template-columns: 1fr 1fr; }
+            .sidebar, .app-sidebar { width: 240px; left: -240px; }
+            .main-content { margin-left: 0; padding: 10px; }
+            .app-main { margin-left: 0; padding: 10px; }
+            
+            .hero-section { padding: 15px 10px; }
+            .hero-text h1 { font-size: 20px; }
+            .hero-text p { font-size: 13px; }
+            .hero-photo { width: 130px; height: 130px; min-width: 130px; }
+            .hero-stat-number { font-size: 20px; }
+            
+            .counters-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .counter-box { padding: 12px 8px; }
+            .counter-value { font-size: 24px; }
+            .counter-label { font-size: 10px; }
+            
+            .card { padding: 15px 12px; }
+            .section-title { font-size: 20px; }
+            
+            .certs-grid { grid-template-columns: 1fr; max-width: 200px; margin: 10px auto 0; }
+            .cert-placeholder { height: 100px; }
+            
+            .cta-card { padding: 20px 10px; }
+            .cta-card h2 { font-size: 20px; }
+            
+            .review-card { padding: 18px 12px; }
         }
 
         /* Обо мне, Метод, Марафон */
